@@ -16,14 +16,14 @@ type Tick struct {
 }
 
 const (
-	TIMEFRAME_M1  uint = 1
-	TIMEFRAME_M5       = 5
-	TIMEFRAME_M10      = 10
-	TIMEFRAME_M15      = 15
-	TIMEFRAME_M30      = 30
-	TIMEFRAME_H1       = 60
-	TIMEFRAME_H4       = 4 * 60
-	TIMEFRAME_D1       = 24 * 60
+	TimeFrameM1  uint = 1
+	TimeFrameM5       = 5
+	TimeFrameM10      = 10
+	TimeFrameM15      = 15
+	TimeFrameM30      = 30
+	TimeFrameH1       = 60
+	TimeFrameH4       = 4 * 60
+	TimeFrameD1       = 24 * 60
 )
 
 type Bar struct {

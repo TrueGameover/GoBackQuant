@@ -1,8 +1,8 @@
 package trade
 
 import (
+	"github.com/TrueGameover/GoBackQuant/graph"
 	"github.com/shopspring/decimal"
-	"time"
 )
 
 const (
@@ -16,8 +16,9 @@ type Position struct {
 	StopLossPrice   decimal.Decimal
 	TakeProfitPrice decimal.Decimal
 	Lot             uint
-	Date            time.Time
 	PositionType    uint
+	Open            *graph.Bar
+	Closed          *graph.Bar
 }
 
 func (p *Position) IsClosed(price decimal.Decimal) bool {
@@ -29,4 +30,9 @@ func (p *Position) IsClosed(price decimal.Decimal) bool {
 	}
 
 	return false
+}
+
+type PositionManager struct {
+	openPositions   []*Position
+	closedPositions []*Position
 }
