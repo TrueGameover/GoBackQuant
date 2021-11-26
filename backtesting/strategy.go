@@ -9,4 +9,5 @@ type Strategy interface {
 	BeforeTick(graph *graph.Graph)
 	Tick(price decimal.Decimal)
 	AfterTick()
+	GetTradeFee() decimal.Decimal
 }
