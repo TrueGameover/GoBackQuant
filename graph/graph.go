@@ -90,7 +90,7 @@ func (graph *Graph) Tick(tick *Tick) {
 		bar = &Bar{
 			Tick: Tick{
 				Id:     0,
-				Date:   time.Time{},
+				Date:   tick.Date,
 				Open:   decimal.New(0, 0),
 				High:   decimal.New(math.MinInt64, 0),
 				Low:    decimal.New(math.MaxInt64, 0),

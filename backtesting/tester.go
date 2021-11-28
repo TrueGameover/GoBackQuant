@@ -45,7 +45,9 @@ func (tester *StrategyTester) Run(target *Strategy) {
 
 		if strategy.IsOpenPosition() {
 			if strategy.GetPositionsLimit() == 0 || tester.positionManager.GetOpenedPositionsCount() < strategy.GetPositionsLimit() {
-				if tester.balanceManager.HoldMoney(strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())) {
+				holdMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize()).Add(strategy.GetTradeFee())
+
+				if tester.balanceManager.HoldMoney(holdMoney) {
 					tester.positionManager.OpenPosition(
 						strategy.GetPositionType(),
 						tick,
