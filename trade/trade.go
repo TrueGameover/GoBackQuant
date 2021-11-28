@@ -8,3 +8,28 @@ type Trade struct {
 	MoneyDiff decimal.Decimal
 	Position  *Position
 }
+
+type HistorySaver struct {
+	counter uint64
+	deals   []*Trade
+}
+
+func (saver *HistorySaver) AddToHistory(positions []*Position) {
+	for _, position := range positions {
+		saver.saveToHistory(position)
+	}
+}
+
+func (saver *HistorySaver) saveToHistory(position *Position) {
+	diff := position.GetPipsAfterClose()
+
+	trade := Trade{
+		Id:        saver.counter,
+		Success:   diff.IsPositive(),
+		MoneyDiff: diff,
+		Position:  position,
+	}
+
+	saver.counter++
+	saver.deals = append(saver.deals, &trade)
+}

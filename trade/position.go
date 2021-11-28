@@ -14,23 +14,41 @@ const (
 type Position struct {
 	Id              uint64
 	Price           decimal.Decimal
+	ClosePrice      decimal.Decimal
 	StopLossPrice   decimal.Decimal
 	TakeProfitPrice decimal.Decimal
-	Lot             uint
+	Lot             decimal.Decimal
 	PositionType    uint
 	Open            *graph.Bar
 	Closed          *graph.Bar
 }
 
-func (p *Position) IsShouldClose(price decimal.Decimal) bool {
+func (p *Position) IsShouldClose(tick *graph.Tick) bool {
 	switch p.PositionType {
 	case TypeLong:
-		return price.LessThanOrEqual(p.StopLossPrice)
+		return tick.Close.LessThanOrEqual(p.StopLossPrice)
 	case TypeShort:
-		return price.GreaterThanOrEqual(p.StopLossPrice)
+		return tick.Close.GreaterThanOrEqual(p.StopLossPrice)
 	}
 
 	return false
+}
+
+func (p *Position) GetPipsAfterClose() decimal.Decimal {
+	result := decimal.New(0, 0)
+
+	if p.Closed != nil {
+		switch p.PositionType {
+		case TypeLong:
+			result = p.ClosePrice.Sub(p.Price)
+			break
+		case TypeShort:
+			result = p.Price.Sub(p.ClosePrice)
+			break
+		}
+	}
+
+	return result
 }
 
 type PositionManager struct {
@@ -39,10 +57,10 @@ type PositionManager struct {
 	counter         uint64
 }
 
-func (manager *PositionManager) OpenPosition(positionType uint, price decimal.Decimal, bar *graph.Bar, lot uint, stopLoss decimal.Decimal, takeProfit decimal.Decimal) uint64 {
+func (manager *PositionManager) OpenPosition(positionType uint, tick *graph.Tick, bar *graph.Bar, lot decimal.Decimal, stopLoss decimal.Decimal, takeProfit decimal.Decimal) uint64 {
 	position := Position{
 		Id:              manager.counter,
-		Price:           price,
+		Price:           tick.Close,
 		StopLossPrice:   stopLoss,
 		TakeProfitPrice: takeProfit,
 		Lot:             lot,
@@ -57,23 +75,54 @@ func (manager *PositionManager) OpenPosition(positionType uint, price decimal.De
 	return position.Id
 }
 
-func (manager *PositionManager) ClosePosition(id uint64, bar *graph.Bar) (found bool) {
-	found = false
+func (manager *PositionManager) ClosePosition(id uint64, bar *graph.Bar) *Position {
+	var targetPosition *Position
+
 	manager.openPositions = funk.Filter(manager.openPositions, func(position *Position) bool {
 		if position.Id == id {
+			barLastTick := bar.GetLastTick()
+			if barLastTick == nil {
+				position.ClosePrice = bar.Open
+
+			} else {
+				position.ClosePrice = barLastTick.Close
+			}
+
 			position.Closed = bar
-			found = true
+			targetPosition = position
 			return false
 		}
 
 		return true
 	}).([]*Position)
 
-	return
+	return targetPosition
 }
 
 func (manager *PositionManager) CloseAll(bar *graph.Bar) {
 	for _, position := range manager.openPositions {
 		manager.ClosePosition(position.Id, bar)
 	}
+}
+
+func (manager *PositionManager) UpdateForClosePositions(tick *graph.Tick, bar *graph.Bar) []*Position {
+	var closedPositions []*Position
+
+	for _, openPosition := range manager.openPositions {
+		if openPosition.IsShouldClose(tick) {
+			if manager.ClosePosition(openPosition.Id, bar) == nil {
+				panic("Can't close position.")
+			}
+
+			closedPositions = append(manager.closedPositions, openPosition)
+		}
+	}
+
+	manager.closedPositions = append(manager.closedPositions, closedPositions...)
+
+	return closedPositions
+}
+
+func (manager *PositionManager) GetOpenedPositionsCount() uint {
+	return uint(len(manager.openPositions))
 }

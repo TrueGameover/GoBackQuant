@@ -8,6 +8,14 @@ import (
 type Strategy interface {
 	BeforeTick(graph *graph.Graph)
 	Tick(price decimal.Decimal)
-	AfterTick()
+	AfterTick(graph *graph.Graph)
 	GetTradeFee() decimal.Decimal
+	ShouldContinue() bool
+	IsOpenPosition() bool
+	GetStopLoss() decimal.Decimal
+	GetTakeProfit() decimal.Decimal
+	GetPositionType() uint
+	GetLotSize() decimal.Decimal
+	GetSingleLotPrice() decimal.Decimal
+	GetPositionsLimit() uint
 }

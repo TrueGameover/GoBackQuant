@@ -14,11 +14,15 @@ func (provider *CsvProvider) GetNextTick() graph.Tick {
 
 	return graph.Tick{
 		Id:     0,
-		Date:   time.Time{},
-		Open:   decimal.Decimal{},
-		High:   decimal.Decimal{},
-		Low:    decimal.Decimal{},
-		Close:  decimal.Decimal{},
-		Volume: decimal.Decimal{},
+		Date:   time.Now(),
+		Open:   decimal.New(0, 0),
+		High:   decimal.New(0, 0),
+		Low:    decimal.New(0, 0),
+		Close:  decimal.New(0, 0),
+		Volume: decimal.New(0, 0),
 	}
+}
+
+func (provider *CsvProvider) HasTicks() bool {
+	return true
 }
