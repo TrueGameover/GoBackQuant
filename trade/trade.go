@@ -33,3 +33,7 @@ func (saver *HistorySaver) saveToHistory(position *Position) {
 	saver.counter++
 	saver.deals = append(saver.deals, &trade)
 }
+
+func (saver *HistorySaver) GetDealsCount() int {
+	return len(saver.deals)
+}

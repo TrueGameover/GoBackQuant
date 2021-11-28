@@ -65,3 +65,6 @@ func (tester *StrategyTester) Run(target *Strategy) {
 func (tester *StrategyTester) GetGraph() *graph.Graph {
 	return tester.graph
 }
+func (tester *StrategyTester) GetHistorySaver() *trade.HistorySaver {
+	return tester.historySaver
+}

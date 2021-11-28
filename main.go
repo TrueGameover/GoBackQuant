@@ -33,7 +33,6 @@ func main() {
 
 	tester.Run(&strategy)
 
-	graphic := tester.GetGraph()
-
-	fmt.Println(graphic.GetTicksCount())
+	history := tester.GetHistorySaver()
+	fmt.Println(history.GetDealsCount())
 }

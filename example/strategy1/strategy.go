@@ -16,6 +16,7 @@ func (strategy *TemaAndRStrategy) BeforeTick(graph *graph.Graph) {
 }
 
 func (strategy *TemaAndRStrategy) Tick(price decimal.Decimal) {
+
 }
 
 func (strategy *TemaAndRStrategy) AfterTick(graph *graph.Graph) {
@@ -47,6 +48,7 @@ func (strategy *TemaAndRStrategy) GetStopLoss() decimal.Decimal {
 func (strategy *TemaAndRStrategy) GetTakeProfit() decimal.Decimal {
 	return decimal.New(0, 0)
 }
+
 func (strategy *TemaAndRStrategy) GetPositionType() uint {
 	return trade.TypeLong
 }
