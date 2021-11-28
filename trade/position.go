@@ -114,7 +114,7 @@ func (manager *PositionManager) UpdateForClosePositions(tick *graph.Tick, bar *g
 				panic("Can't close position.")
 			}
 
-			closedPositions = append(manager.closedPositions, openPosition)
+			closedPositions = append(closedPositions, openPosition)
 		}
 	}
 

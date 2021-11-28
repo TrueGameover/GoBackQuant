@@ -5,6 +5,7 @@ import (
 	"github.com/TrueGameover/GoBackQuant/graph"
 	"github.com/TrueGameover/GoBackQuant/trade"
 	"github.com/shopspring/decimal"
+	"math/rand"
 )
 
 type TemaAndRStrategy struct {
@@ -24,13 +25,7 @@ func (strategy *TemaAndRStrategy) AfterTick(graph *graph.Graph) {
 }
 
 func (strategy *TemaAndRStrategy) GetTradeFee() decimal.Decimal {
-	val := decimal.Decimal{}
-
-	if err := val.Scan(10); err != nil {
-		panic("Trade fee needed")
-	}
-
-	return val
+	return decimal.New(10, 0)
 }
 
 func (strategy *TemaAndRStrategy) ShouldContinue() bool {
@@ -38,15 +33,15 @@ func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 }
 
 func (strategy *TemaAndRStrategy) IsOpenPosition() bool {
-	return false
+	return rand.Intn(10)%2 == 0
 }
 
-func (strategy *TemaAndRStrategy) GetStopLoss() decimal.Decimal {
-	return decimal.New(0, 0)
+func (strategy *TemaAndRStrategy) GetStopLoss(price decimal.Decimal) decimal.Decimal {
+	return price.Sub(decimal.New(0, 5))
 }
 
-func (strategy *TemaAndRStrategy) GetTakeProfit() decimal.Decimal {
-	return decimal.New(0, 0)
+func (strategy *TemaAndRStrategy) GetTakeProfit(price decimal.Decimal) decimal.Decimal {
+	return price.Add(decimal.New(0, 15))
 }
 
 func (strategy *TemaAndRStrategy) GetPositionType() uint {
@@ -62,5 +57,5 @@ func (strategy *TemaAndRStrategy) GetSingleLotPrice() decimal.Decimal {
 }
 
 func (strategy *TemaAndRStrategy) GetPositionsLimit() uint {
-	return 0
+	return 1
 }

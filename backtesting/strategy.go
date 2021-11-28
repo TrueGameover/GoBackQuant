@@ -12,8 +12,8 @@ type Strategy interface {
 	GetTradeFee() decimal.Decimal
 	ShouldContinue() bool
 	IsOpenPosition() bool
-	GetStopLoss() decimal.Decimal
-	GetTakeProfit() decimal.Decimal
+	GetStopLoss(price decimal.Decimal) decimal.Decimal
+	GetTakeProfit(price decimal.Decimal) decimal.Decimal
 	GetPositionType() uint
 	GetLotSize() decimal.Decimal
 	GetSingleLotPrice() decimal.Decimal

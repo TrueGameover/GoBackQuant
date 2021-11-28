@@ -34,5 +34,7 @@ func main() {
 	tester.Run(&strategy)
 
 	history := tester.GetHistorySaver()
-	fmt.Println(history.GetDealsCount())
+	fmt.Printf("Всего сделок: %d\n", history.GetDealsCount())
+	fmt.Printf("Успешных сделок: %d\n", history.GetProfitDealsCount())
+	fmt.Printf("Убыточных сделок: %d\n", history.GetLossDealsCount())
 }

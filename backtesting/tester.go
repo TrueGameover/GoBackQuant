@@ -32,29 +32,30 @@ func (tester *StrategyTester) Run(target *Strategy) {
 	for tick != nil {
 		strategy.BeforeTick(tester.graph)
 
-		closedPositions := tester.positionManager.UpdateForClosePositions(tick, tester.graph.GetCurrentBar())
+		tester.graph.Tick(tick)
+		closedPositions := tester.positionManager.UpdateForClosePositions(tick, tester.graph.GetFreshBar())
 		if len(closedPositions) > 0 {
 			tester.historySaver.AddToHistory(closedPositions)
 		}
 
 		strategy.Tick(tick.Close)
 
-		tester.graph.Tick(tick)
-
 		strategy.AfterTick(tester.graph)
 
 		if strategy.IsOpenPosition() {
-			if strategy.GetPositionsLimit() == 0 || tester.positionManager.GetOpenedPositionsCount() < strategy.GetPositionsLimit() {
-				holdMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize()).Add(strategy.GetTradeFee())
+			if strategy.GetPositionsLimit() == 0 || (tester.positionManager.GetOpenedPositionsCount() < strategy.GetPositionsLimit() && strategy.GetPositionsLimit() > 0) {
+				holdMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())
 
 				if tester.balanceManager.HoldMoney(holdMoney) {
+					tester.balanceManager.Commission(strategy.GetTradeFee())
+
 					tester.positionManager.OpenPosition(
 						strategy.GetPositionType(),
 						tick,
-						tester.graph.GetCurrentBar(),
+						tester.graph.GetFreshBar(),
 						strategy.GetLotSize(),
-						strategy.GetStopLoss(),
-						strategy.GetTakeProfit(),
+						strategy.GetStopLoss(tick.Close),
+						strategy.GetTakeProfit(tick.Close),
 					)
 				}
 			}

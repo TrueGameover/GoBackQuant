@@ -10,11 +10,11 @@ type BalanceManager struct {
 }
 
 func (manager *BalanceManager) HoldMoney(amount decimal.Decimal) bool {
-	hold := manager.free.Sub(amount)
+	free := manager.free.Sub(amount)
 
-	if hold.IsPositive() {
-		manager.free = manager.free.Sub(hold)
-		manager.hold = manager.hold.Add(hold)
+	if free.IsPositive() {
+		manager.free = free
+		manager.hold = manager.hold.Add(amount)
 		manager.total = manager.free.Add(manager.hold)
 
 		return true
@@ -27,14 +27,18 @@ func (manager *BalanceManager) FreeMoney(amount decimal.Decimal) bool {
 	hold := manager.hold.Sub(amount)
 
 	if hold.IsPositive() {
-		manager.free = manager.free.Add(hold)
-		manager.hold = manager.hold.Sub(hold)
+		manager.free = manager.free.Add(amount)
+		manager.hold = hold
 		manager.total = manager.free.Add(manager.hold)
 
 		return true
 	}
 
 	return false
+}
+
+func (manager *BalanceManager) Commission(amount decimal.Decimal) {
+	manager.free = manager.free.Sub(amount)
 }
 
 func (manager *BalanceManager) SetInitialBalance(amount decimal.Decimal) {

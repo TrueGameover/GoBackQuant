@@ -125,6 +125,10 @@ func (graph *Graph) GetTicksCount() uint64 {
 	return graph.lastTickId - 1
 }
 
-func (graph *Graph) GetCurrentBar() *Bar {
+func (graph *Graph) GetFreshBar() *Bar {
+	if graph.currentBar == nil {
+		return graph.bars[len(graph.bars)-1]
+	}
+
 	return graph.currentBar
 }

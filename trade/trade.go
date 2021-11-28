@@ -1,6 +1,9 @@
 package trade
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/shopspring/decimal"
+	"github.com/thoas/go-funk"
+)
 
 type Trade struct {
 	Id        uint64
@@ -36,4 +39,20 @@ func (saver *HistorySaver) saveToHistory(position *Position) {
 
 func (saver *HistorySaver) GetDealsCount() int {
 	return len(saver.deals)
+}
+
+func (saver *HistorySaver) GetProfitDealsCount() int {
+	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
+		return trade.Success
+	}).([]*Trade)
+
+	return len(trades)
+}
+
+func (saver *HistorySaver) GetLossDealsCount() int {
+	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
+		return !trade.Success
+	}).([]*Trade)
+
+	return len(trades)
 }
