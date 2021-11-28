@@ -27,19 +27,19 @@ func (tester *StrategyTester) Run(target *Strategy) {
 	tickProvider := *tester.tickProvider
 	strategy := *target
 
-	for tickProvider.HasTicks() {
-		tick := tickProvider.GetNextTick()
+	tick := tickProvider.GetNextTick()
 
+	for tick != nil {
 		strategy.BeforeTick(tester.graph)
 
-		closedPositions := tester.positionManager.UpdateForClosePositions(&tick, tester.graph.GetCurrentBar())
+		closedPositions := tester.positionManager.UpdateForClosePositions(tick, tester.graph.GetCurrentBar())
 		if len(closedPositions) > 0 {
 			tester.historySaver.AddToHistory(closedPositions)
 		}
 
 		strategy.Tick(tick.Close)
 
-		tester.graph.Tick(&tick)
+		tester.graph.Tick(tick)
 
 		strategy.AfterTick(tester.graph)
 
@@ -48,7 +48,7 @@ func (tester *StrategyTester) Run(target *Strategy) {
 				if tester.balanceManager.HoldMoney(strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())) {
 					tester.positionManager.OpenPosition(
 						strategy.GetPositionType(),
-						&tick,
+						tick,
 						tester.graph.GetCurrentBar(),
 						strategy.GetLotSize(),
 						strategy.GetStopLoss(),
@@ -57,5 +57,11 @@ func (tester *StrategyTester) Run(target *Strategy) {
 				}
 			}
 		}
+
+		tick = tickProvider.GetNextTick()
 	}
+}
+
+func (tester *StrategyTester) GetGraph() *graph.Graph {
+	return tester.graph
 }

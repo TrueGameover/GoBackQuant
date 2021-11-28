@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/TrueGameover/GoBackQuant/backtesting"
 	"github.com/TrueGameover/GoBackQuant/example/strategy1"
 	"github.com/TrueGameover/GoBackQuant/graph"
@@ -11,7 +12,13 @@ import (
 )
 
 func main() {
-	var tickProvider provider.TickProvider = &provider.CsvProvider{}
+	csvProvider := provider.CsvProvider{}
+	err := csvProvider.Load("data/SPFB.SILV-3.22_210305_211124.txt")
+	var tickProvider provider.TickProvider = &csvProvider
+
+	if err != nil {
+		panic(err)
+	}
 
 	balanceManager := money.BalanceManager{}
 	balanceManager.SetInitialBalance(decimal.New(10000, 0))
@@ -25,4 +32,8 @@ func main() {
 	var strategy backtesting.Strategy = &strategy1.TemaAndRStrategy{}
 
 	tester.Run(&strategy)
+
+	graphic := tester.GetGraph()
+
+	fmt.Println(graphic.GetTicksCount())
 }
