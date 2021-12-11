@@ -16,6 +16,8 @@ type Strategy interface {
 	GetTakeProfit(price decimal.Decimal) decimal.Decimal
 	GetPositionType() uint
 	GetLotSize() decimal.Decimal
+	GetSinglePipPrice() decimal.Decimal
 	GetSingleLotPrice() decimal.Decimal
+	GetSinglePipValue() decimal.Decimal
 	GetPositionsLimit() uint
 }

@@ -21,7 +21,7 @@ func main() {
 	}
 
 	balanceManager := money.BalanceManager{}
-	balanceManager.SetInitialBalance(decimal.New(10000, 0))
+	balanceManager.SetInitialBalance(decimal.NewFromInt(10000))
 	balanceManager.Reset()
 
 	positionManager := trade.PositionManager{}
@@ -34,7 +34,16 @@ func main() {
 	tester.Run(&strategy)
 
 	history := tester.GetHistorySaver()
-	fmt.Printf("Всего сделок: %d\n", history.GetDealsCount())
-	fmt.Printf("Успешных сделок: %d\n", history.GetProfitDealsCount())
-	fmt.Printf("Убыточных сделок: %d\n", history.GetLossDealsCount())
+	total := history.GetDealsCount()
+	profitDealsCount := history.GetProfitDealsCount()
+
+	if total > 0 {
+		fmt.Printf("Финальный баланс: %s\n", balanceManager.GetBalance().String())
+		fmt.Printf("Всего сделок: %d\n", total)
+		fmt.Printf("Успешных сделок: %d\n", history.GetProfitDealsCount())
+		fmt.Printf("Убыточных сделок: %d\n", history.GetLossDealsCount())
+
+		profitPercent := float32(profitDealsCount) / float32(total) * 100
+		fmt.Printf("Процент успешных сделок: %.2f%% \n", profitPercent)
+	}
 }

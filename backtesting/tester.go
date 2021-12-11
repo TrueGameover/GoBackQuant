@@ -35,6 +35,15 @@ func (tester *StrategyTester) Run(target *Strategy) {
 		tester.graph.Tick(tick)
 		closedPositions := tester.positionManager.UpdateForClosePositions(tick, tester.graph.GetFreshBar())
 		if len(closedPositions) > 0 {
+			for _, closedPosition := range closedPositions {
+				usedMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())
+
+				if tester.balanceManager.FreeMoney(usedMoney) {
+					balanceDiff := strategy.GetSinglePipPrice().Mul(closedPosition.GetPipsAfterClose()).Div(strategy.GetSinglePipValue())
+					tester.balanceManager.AddDiff(balanceDiff)
+				}
+			}
+
 			tester.historySaver.AddToHistory(closedPositions)
 		}
 
@@ -63,6 +72,8 @@ func (tester *StrategyTester) Run(target *Strategy) {
 
 		tick = tickProvider.GetNextTick()
 	}
+
+	tester.positionManager.CloseAll(tester.graph.GetFreshBar())
 }
 
 func (tester *StrategyTester) GetGraph() *graph.Graph {

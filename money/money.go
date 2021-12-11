@@ -1,6 +1,8 @@
 package money
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/shopspring/decimal"
+)
 
 type BalanceManager struct {
 	free           decimal.Decimal
@@ -26,7 +28,7 @@ func (manager *BalanceManager) HoldMoney(amount decimal.Decimal) bool {
 func (manager *BalanceManager) FreeMoney(amount decimal.Decimal) bool {
 	hold := manager.hold.Sub(amount)
 
-	if hold.IsPositive() {
+	if hold.IsPositive() || hold.IsZero() {
 		manager.free = manager.free.Add(amount)
 		manager.hold = hold
 		manager.total = manager.free.Add(manager.hold)
@@ -47,4 +49,12 @@ func (manager *BalanceManager) SetInitialBalance(amount decimal.Decimal) {
 
 func (manager *BalanceManager) Reset() {
 	manager.free = manager.initialBalance
+}
+
+func (manager *BalanceManager) GetBalance() decimal.Decimal {
+	return manager.free
+}
+
+func (manager *BalanceManager) AddDiff(diff decimal.Decimal) {
+	manager.free = manager.free.Add(diff)
 }

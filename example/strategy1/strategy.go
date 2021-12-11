@@ -6,6 +6,7 @@ import (
 	"github.com/TrueGameover/GoBackQuant/trade"
 	"github.com/shopspring/decimal"
 	"math/rand"
+	"time"
 )
 
 type TemaAndRStrategy struct {
@@ -33,15 +34,16 @@ func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 }
 
 func (strategy *TemaAndRStrategy) IsOpenPosition() bool {
+	rand.Seed(time.Now().Unix())
 	return rand.Intn(10)%2 == 0
 }
 
 func (strategy *TemaAndRStrategy) GetStopLoss(price decimal.Decimal) decimal.Decimal {
-	return price.Sub(decimal.New(0, 5))
+	return price.Sub(decimal.NewFromFloat(0.05))
 }
 
 func (strategy *TemaAndRStrategy) GetTakeProfit(price decimal.Decimal) decimal.Decimal {
-	return price.Add(decimal.New(0, 15))
+	return price.Add(decimal.NewFromFloat(0.15))
 }
 
 func (strategy *TemaAndRStrategy) GetPositionType() uint {
@@ -49,11 +51,19 @@ func (strategy *TemaAndRStrategy) GetPositionType() uint {
 }
 
 func (strategy *TemaAndRStrategy) GetLotSize() decimal.Decimal {
-	return decimal.New(1, 0)
+	return decimal.NewFromInt(2)
+}
+
+func (strategy *TemaAndRStrategy) GetSinglePipPrice() decimal.Decimal {
+	return decimal.NewFromFloat(7)
 }
 
 func (strategy *TemaAndRStrategy) GetSingleLotPrice() decimal.Decimal {
-	return decimal.New(10, 0)
+	return decimal.NewFromFloat(3000)
+}
+
+func (strategy *TemaAndRStrategy) GetSinglePipValue() decimal.Decimal {
+	return decimal.NewFromFloat(0.01)
 }
 
 func (strategy *TemaAndRStrategy) GetPositionsLimit() uint {
