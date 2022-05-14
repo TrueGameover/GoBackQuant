@@ -71,6 +71,10 @@ func (tester *StrategyTester) Run(target *Strategy) {
 		}
 
 		tick = tickProvider.GetNextTick()
+
+		if !strategy.ShouldContinue() {
+			break
+		}
 	}
 
 	tester.positionManager.CloseAll(tester.graph.GetFreshBar())

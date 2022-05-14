@@ -26,9 +26,9 @@ type Position struct {
 func (p *Position) IsShouldClose(tick *graph.Tick) bool {
 	switch p.PositionType {
 	case TypeLong:
-		return tick.Close.LessThanOrEqual(p.StopLossPrice) || tick.Close.GreaterThanOrEqual(p.TakeProfitPrice)
+		return tick.Low.LessThanOrEqual(p.StopLossPrice) || tick.High.GreaterThanOrEqual(p.TakeProfitPrice)
 	case TypeShort:
-		return tick.Close.GreaterThanOrEqual(p.StopLossPrice) || tick.Close.LessThanOrEqual(p.TakeProfitPrice)
+		return tick.High.GreaterThanOrEqual(p.StopLossPrice) || tick.Low.LessThanOrEqual(p.TakeProfitPrice)
 	}
 
 	return false
