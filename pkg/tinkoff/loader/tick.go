@@ -23,8 +23,6 @@ type PartialTickLoader struct {
 	ticksCount    uint64
 }
 
-// 'Close', 'Open', 'High', 'Low', 'Volume'
-
 func (loader *PartialTickLoader) Init(ticker string, from time.Time, to time.Time, timeframe graph.TimeFrame, ctx context.Context) error {
 	client := loader.getActualClient()
 
@@ -58,6 +56,8 @@ func (loader *PartialTickLoader) LoadNext(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	loader.ticks = make([]graph.Tick, len(candles))
 
 	for _, candle := range candles {
 		tick := loader.convertCandle(candle)

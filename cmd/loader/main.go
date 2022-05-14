@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/save/tick"
 	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/loader"
 	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/token"
 	"time"
@@ -29,5 +30,21 @@ func main() {
 	err = tickLoader.LoadNext(ctx)
 	if err != nil {
 		panic(err)
+	}
+
+	saver := tick.CsvSaver{}
+	err = saver.WriteTo("test.csv")
+	if err != nil {
+		panic(err)
+	}
+
+	err = saver.Write(tickLoader.GetTicks())
+	if err != nil {
+		panic(err)
+	}
+
+	err = saver.Close()
+	if err != nil {
+
 	}
 }
