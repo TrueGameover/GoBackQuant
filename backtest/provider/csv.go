@@ -2,7 +2,7 @@ package provider
 
 import (
 	"encoding/csv"
-	"github.com/TrueGameover/GoBackQuant/graph"
+	"github.com/TrueGameover/GoBackQuant/backtest/graph"
 	"github.com/shopspring/decimal"
 	"os"
 	"time"

@@ -1,9 +1,9 @@
 package strategy1
 
 import (
-	"github.com/TrueGameover/GoBackQuant/backtesting"
-	"github.com/TrueGameover/GoBackQuant/graph"
-	"github.com/TrueGameover/GoBackQuant/trade"
+	"github.com/TrueGameover/GoBackQuant/backtest/backtesting"
+	"github.com/TrueGameover/GoBackQuant/backtest/graph"
+	"github.com/TrueGameover/GoBackQuant/backtest/trade"
 	"github.com/shopspring/decimal"
 	"math/rand"
 	"time"
