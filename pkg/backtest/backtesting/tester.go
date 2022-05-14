@@ -1,10 +1,10 @@
 package backtesting
 
 import (
-	"github.com/TrueGameover/GoBackQuant/pkg/backtest/graph"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
+	"github.com/TrueGameover/GoBackQuant/pkg/graph"
 )
 
 type StrategyTester struct {
@@ -15,7 +15,7 @@ type StrategyTester struct {
 	historySaver    *trade.HistorySaver
 }
 
-func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balanceManager *money.BalanceManager, tickProvider *provider.TickProvider, timeframe uint) {
+func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balanceManager *money.BalanceManager, tickProvider *provider.TickProvider, timeframe graph.TimeFrame) {
 	tester.positionManager = positionManager
 	tester.balanceManager = balanceManager
 	tester.tickProvider = tickProvider

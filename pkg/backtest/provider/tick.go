@@ -1,6 +1,6 @@
 package provider
 
-import "github.com/TrueGameover/GoBackQuant/pkg/backtest/graph"
+import "github.com/TrueGameover/GoBackQuant/pkg/graph"
 
 type TickProvider interface {
 	GetNextTick() *graph.Tick

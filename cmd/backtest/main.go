@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/backtesting"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/example/strategy1"
-	"github.com/TrueGameover/GoBackQuant/pkg/backtest/graph"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
+	graph2 "github.com/TrueGameover/GoBackQuant/pkg/graph"
 	"github.com/shopspring/decimal"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	positionManager := trade.PositionManager{}
 
 	tester := backtesting.StrategyTester{}
-	tester.Init(&positionManager, &balanceManager, &tickProvider, graph.TimeFrameM15)
+	tester.Init(&positionManager, &balanceManager, &tickProvider, graph2.TimeFrameM15)
 
 	var strategy backtesting.Strategy = &strategy1.TemaAndRStrategy{}
 

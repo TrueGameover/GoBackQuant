@@ -16,15 +16,19 @@ type Tick struct {
 	Volume decimal.Decimal
 }
 
+type TimeFrame uint
+
 const (
-	TimeFrameM1  uint = 1
-	TimeFrameM5       = 5
-	TimeFrameM10      = 10
-	TimeFrameM15      = 15
-	TimeFrameM30      = 30
-	TimeFrameH1       = 60
-	TimeFrameH4       = 4 * 60
-	TimeFrameD1       = 24 * 60
+	TimeFrameM1  TimeFrame = 1
+	TimeFrameM5  TimeFrame = 5
+	TimeFrameM10 TimeFrame = 10
+	TimeFrameM15 TimeFrame = 15
+	TimeFrameM30 TimeFrame = 30
+	TimeFrameH1  TimeFrame = 60
+	TimeFrameH4  TimeFrame = 4 * 60
+	TimeFrameD1  TimeFrame = 24 * 60
+	TimeFrameD4  TimeFrame = 4 * 24 * 60
+	TimeFrameW1  TimeFrame = 7 * 24 * 60
 )
 
 type Bar struct {
@@ -62,7 +66,7 @@ func (bar *Bar) Recalculate() {
 }
 
 type Graph struct {
-	Timeframe  uint
+	Timeframe  TimeFrame
 	bars       []*Bar
 	lastTickId uint64
 	currentBar *Bar
