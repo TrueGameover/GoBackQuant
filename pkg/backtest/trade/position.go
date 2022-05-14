@@ -1,7 +1,7 @@
 package trade
 
 import (
-	"github.com/TrueGameover/GoBackQuant/backtest/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/graph"
 	"github.com/shopspring/decimal"
 	"github.com/thoas/go-funk"
 )

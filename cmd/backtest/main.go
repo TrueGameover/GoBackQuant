@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/TrueGameover/GoBackQuant/backtesting"
-	"github.com/TrueGameover/GoBackQuant/example/strategy1"
-	"github.com/TrueGameover/GoBackQuant/graph"
-	"github.com/TrueGameover/GoBackQuant/money"
-	"github.com/TrueGameover/GoBackQuant/provider"
-	"github.com/TrueGameover/GoBackQuant/trade"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/backtesting"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/example/strategy1"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/shopspring/decimal"
 )
 

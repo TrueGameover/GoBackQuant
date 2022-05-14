@@ -1,10 +1,10 @@
 package backtesting
 
 import (
-	"github.com/TrueGameover/GoBackQuant/backtest/graph"
-	"github.com/TrueGameover/GoBackQuant/backtest/money"
-	"github.com/TrueGameover/GoBackQuant/backtest/provider"
-	"github.com/TrueGameover/GoBackQuant/backtest/trade"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 )
 
 type StrategyTester struct {
