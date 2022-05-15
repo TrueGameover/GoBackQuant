@@ -16,22 +16,14 @@ type PartialTickLoader struct {
 	sandboxClient utils.Nullable[*sdk.SandboxRestClient]
 	client        utils.Nullable[*sdk.RestClient]
 	figi          string
-	fromTime      time.Time
-	toTime        time.Time
 	timeFrame     sdk.CandleInterval
 	ticks         []graph.Tick
 	ticksCount    uint64
 }
 
-func (loader *PartialTickLoader) Init(ticker string, from time.Time, to time.Time, timeframe graph.TimeFrame, ctx context.Context) error {
+func (loader *PartialTickLoader) Init(ticker string, timeframe graph.TimeFrame, ctx context.Context) error {
 	client := loader.getActualClient()
 
-	if to.Before(from) {
-		return errors.New("from should be greater")
-	}
-
-	loader.fromTime = from
-	loader.toTime = to
 	loader.timeFrame = loader.getTimeFrame(timeframe)
 	loader.ticksCount = 0
 
@@ -49,21 +41,23 @@ func (loader *PartialTickLoader) Init(ticker string, from time.Time, to time.Tim
 	return nil
 }
 
-func (loader *PartialTickLoader) LoadNext(ctx context.Context) error {
+func (loader *PartialTickLoader) LoadNext(ctx context.Context, startDate time.Time, endDate time.Time) error {
 	client := loader.getActualClient()
 
-	candles, err := client.Candles(ctx, loader.fromTime, loader.toTime, loader.timeFrame, loader.figi)
+	candles, err := client.Candles(ctx, startDate, endDate, loader.timeFrame, loader.figi)
 	if err != nil {
 		return err
 	}
 
-	loader.ticks = make([]graph.Tick, len(candles))
+	if len(candles) > 0 {
+		loader.ticks = make([]graph.Tick, 0)
 
-	for _, candle := range candles {
-		tick := loader.convertCandle(candle)
+		for _, candle := range candles {
+			tick := loader.convertCandle(candle)
 
-		loader.ticks = append(loader.ticks, tick)
-		loader.ticksCount++
+			loader.ticks = append(loader.ticks, tick)
+			loader.ticksCount++
+		}
 	}
 
 	return nil

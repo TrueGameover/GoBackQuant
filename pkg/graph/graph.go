@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"errors"
 	"github.com/shopspring/decimal"
 	"math"
 	"time"
@@ -30,6 +31,35 @@ const (
 	TimeFrameD4  TimeFrame = 4 * 24 * 60
 	TimeFrameW1  TimeFrame = 7 * 24 * 60
 )
+
+func ParseTimeFrame(d time.Duration) (TimeFrame, error) {
+	minutes := uint(d.Minutes())
+
+	switch minutes {
+	case uint(TimeFrameM1):
+		return TimeFrameM1, nil
+	case uint(TimeFrameM5):
+		return TimeFrameM5, nil
+	case uint(TimeFrameM10):
+		return TimeFrameM10, nil
+	case uint(TimeFrameM15):
+		return TimeFrameM15, nil
+	case uint(TimeFrameM30):
+		return TimeFrameM30, nil
+	case uint(TimeFrameH1):
+		return TimeFrameH1, nil
+	case uint(TimeFrameH4):
+		return TimeFrameH4, nil
+	case uint(TimeFrameD1):
+		return TimeFrameD1, nil
+	case uint(TimeFrameD4):
+		return TimeFrameD4, nil
+	case uint(TimeFrameW1):
+		return TimeFrameW1, nil
+	}
+
+	return 0, errors.New("not supported")
+}
 
 type Bar struct {
 	Tick

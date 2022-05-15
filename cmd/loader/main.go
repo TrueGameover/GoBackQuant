@@ -2,49 +2,40 @@ package main
 
 import (
 	"context"
-	"github.com/TrueGameover/GoBackQuant/pkg/graph"
-	"github.com/TrueGameover/GoBackQuant/pkg/save/tick"
-	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/loader"
+	"encoding/json"
+	tick2 "github.com/TrueGameover/GoBackQuant/pkg/command/load/tick"
 	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/token"
-	"time"
+	"github.com/shabbyrobe/cmdy"
+	"io/ioutil"
+	"os"
 )
 
+type Configuration struct {
+	Tinkoff token.TinkoffToken
+}
+
 func main() {
-	tinkoffToken := &token.TinkoffToken{Token: "t.rBVNYp1_Hla6mH7QredSMHHJJ0ip0bRE5DNf3Q-Cpdd1ipfRMVlcCRHVk28rjXIdyaLi83Dc9M9JwZx1w8Y8uA", Sandbox: true}
-	fromDate := time.Date(2021, 3, 5, 0, 0, 0, 0, time.UTC)
-	toDate := time.Date(2021, 11, 24, 0, 0, 0, 0, time.UTC)
-
-	ctx, cancelTimeout := context.WithTimeout(context.TODO(), 30*time.Second)
-	defer cancelTimeout()
-
-	tickLoader := &loader.PartialTickLoader{Token: tinkoffToken}
-	err := tickLoader.Init("SBER", fromDate, toDate, graph.TimeFrameD1, ctx)
-
+	content, err := ioutil.ReadFile("config.json")
 	if err != nil {
 		panic(err)
 	}
 
-	ctx, loaderTimeout := context.WithTimeout(context.TODO(), 30*time.Second)
-	defer loaderTimeout()
-
-	err = tickLoader.LoadNext(ctx)
+	config := Configuration{}
+	err = json.Unmarshal(content, &config)
 	if err != nil {
 		panic(err)
 	}
 
-	saver := tick.CsvSaver{}
-	err = saver.WriteTo("test.csv")
+	err = cmdy.Run(context.Background(), os.Args[1:], func() cmdy.Command {
+		return cmdy.NewGroup("", cmdy.Builders{
+			"download": func() cmdy.Command {
+				return &tick2.TinkoffTicksLoader{
+					Token: &config.Tinkoff,
+				}
+			},
+		})
+	})
 	if err != nil {
-		panic(err)
-	}
-
-	err = saver.Write(tickLoader.GetTicks())
-	if err != nil {
-		panic(err)
-	}
-
-	err = saver.Close()
-	if err != nil {
-
+		cmdy.Fatal(err)
 	}
 }
