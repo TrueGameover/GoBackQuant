@@ -5,7 +5,7 @@ import (
 	"errors"
 	sdk "github.com/Tinkoff/invest-openapi-go-sdk"
 	"github.com/TrueGameover/GoBackQuant/pkg/communication/token"
-	"github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	"github.com/TrueGameover/GoBackQuant/pkg/utils"
 	"github.com/shopspring/decimal"
 	"time"
@@ -17,7 +17,7 @@ type PartialTickLoader struct {
 	client        utils.Nullable[*sdk.RestClient]
 	figi          string
 	timeFrame     sdk.CandleInterval
-	ticks         []graph.Tick
+	ticks         []*graph.Tick
 	ticksCount    uint64
 }
 
@@ -50,12 +50,12 @@ func (loader *PartialTickLoader) LoadNext(ctx context.Context, startDate time.Ti
 	}
 
 	if len(candles) > 0 {
-		loader.ticks = make([]graph.Tick, 0)
+		loader.ticks = make([]*graph.Tick, 0)
 
 		for _, candle := range candles {
 			tick := loader.convertCandle(candle)
 
-			loader.ticks = append(loader.ticks, tick)
+			loader.ticks = append(loader.ticks, &tick)
 			loader.ticksCount++
 		}
 	}
@@ -130,7 +130,7 @@ func (loader PartialTickLoader) getTimeFrame(frame graph.TimeFrame) sdk.CandleIn
 	panic("unsupported timeframe")
 }
 
-func (loader *PartialTickLoader) GetTicks() []graph.Tick {
+func (loader *PartialTickLoader) GetTicks() []*graph.Tick {
 	return loader.ticks
 }
 

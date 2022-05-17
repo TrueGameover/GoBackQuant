@@ -2,20 +2,20 @@ package backtesting
 
 import (
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
-	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
-	"github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/tick"
 )
 
 type StrategyTester struct {
 	positionManager *trade.PositionManager
 	balanceManager  *money.BalanceManager
-	tickProvider    *provider.TickProvider
+	tickProvider    *tick.Provider
 	graph           *graph.Graph
 	historySaver    *trade.HistorySaver
 }
 
-func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balanceManager *money.BalanceManager, tickProvider *provider.TickProvider, timeframe graph.TimeFrame) {
+func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balanceManager *money.BalanceManager, tickProvider *tick.Provider, timeframe graph.TimeFrame) {
 	tester.positionManager = positionManager
 	tester.balanceManager = balanceManager
 	tester.tickProvider = tickProvider
@@ -23,17 +23,20 @@ func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balan
 	tester.historySaver = &trade.HistorySaver{}
 }
 
-func (tester *StrategyTester) Run(target *Strategy) {
+func (tester *StrategyTester) Run(target *Strategy) error {
 	tickProvider := *tester.tickProvider
 	strategy := *target
 
-	tick := tickProvider.GetNextTick()
+	nextTick, err := tickProvider.GetNextTick()
+	if err != nil {
+		return err
+	}
 
-	for tick != nil {
+	for nextTick != nil {
 		strategy.BeforeTick(tester.graph)
 
-		tester.graph.Tick(tick)
-		closedPositions := tester.positionManager.UpdateForClosePositions(tick, tester.graph.GetFreshBar())
+		tester.graph.AddTick(nextTick)
+		closedPositions := tester.positionManager.UpdateForClosePositions(nextTick, tester.graph.GetFreshBar())
 		if len(closedPositions) > 0 {
 			for _, closedPosition := range closedPositions {
 				usedMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())
@@ -47,7 +50,7 @@ func (tester *StrategyTester) Run(target *Strategy) {
 			tester.historySaver.AddToHistory(closedPositions)
 		}
 
-		strategy.Tick(tick.Close)
+		strategy.Tick(nextTick.Close)
 
 		strategy.AfterTick(tester.graph)
 
@@ -60,17 +63,20 @@ func (tester *StrategyTester) Run(target *Strategy) {
 
 					tester.positionManager.OpenPosition(
 						strategy.GetPositionType(),
-						tick,
+						nextTick,
 						tester.graph.GetFreshBar(),
 						strategy.GetLotSize(),
-						strategy.GetStopLoss(tick.Close),
-						strategy.GetTakeProfit(tick.Close),
+						strategy.GetStopLoss(nextTick.Close),
+						strategy.GetTakeProfit(nextTick.Close),
 					)
 				}
 			}
 		}
 
-		tick = tickProvider.GetNextTick()
+		nextTick, err = tickProvider.GetNextTick()
+		if err != nil {
+			return err
+		}
 
 		if !strategy.ShouldContinue() {
 			break
@@ -78,6 +84,7 @@ func (tester *StrategyTester) Run(target *Strategy) {
 	}
 
 	tester.positionManager.CloseAll(tester.graph.GetFreshBar())
+	return nil
 }
 
 func (tester *StrategyTester) GetGraph() *graph.Graph {

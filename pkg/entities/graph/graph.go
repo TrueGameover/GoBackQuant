@@ -3,6 +3,7 @@ package graph
 import (
 	"errors"
 	"github.com/shopspring/decimal"
+	"github.com/thoas/go-funk"
 	"math"
 	"time"
 )
@@ -117,7 +118,7 @@ func (graph *Graph) AddBar(bar *Bar) {
 	graph.lastTickId = index
 }
 
-func (graph *Graph) Tick(tick *Tick) {
+func (graph *Graph) AddTick(tick *Tick) {
 	bar := graph.currentBar
 
 	if bar == nil {
@@ -148,6 +149,20 @@ func (graph *Graph) Tick(tick *Tick) {
 
 func (graph *Graph) GetBars() []*Bar {
 	return graph.bars
+}
+
+func (graph *Graph) GetTicks() []*Tick {
+	result := funk.Map(graph.bars, func(t *Bar) *Tick {
+		return &t.Tick
+	})
+
+	ticks, ok := result.([]*Tick)
+
+	if ok {
+		return ticks
+	}
+
+	return nil
 }
 
 func (graph *Graph) Reset() {

@@ -2,8 +2,9 @@ package tick
 
 import (
 	"encoding/csv"
-	"github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	"os"
+	"time"
 )
 
 type CsvSaver struct {
@@ -49,11 +50,11 @@ func (saver *CsvSaver) Close() error {
 	return nil
 }
 
-func (saver *CsvSaver) Write(ticks []graph.Tick) error {
+func (saver *CsvSaver) Write(ticks []*graph.Tick) error {
 	for _, tick := range ticks {
 		// 'Close', 'Open', 'High', 'Low', 'Volume'
 		record := []string{
-			tick.Date.String(),
+			tick.Date.Format(time.RFC3339),
 			tick.Close.String(),
 			tick.Open.String(),
 			tick.High.String(),

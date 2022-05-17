@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	tick2 "github.com/TrueGameover/GoBackQuant/pkg/command/load/tick"
+	"github.com/TrueGameover/GoBackQuant/pkg/command/transform/tick"
 	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/token"
 	"github.com/shabbyrobe/cmdy"
 	"io/ioutil"
@@ -33,8 +34,12 @@ func main() {
 					Token: &config.Tinkoff,
 				}
 			},
+			"transform": func() cmdy.Command {
+				return &tick.CsvTicksTransformer{}
+			},
 		})
 	})
+
 	if err != nil {
 		cmdy.Fatal(err)
 	}

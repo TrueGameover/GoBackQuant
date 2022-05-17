@@ -3,7 +3,7 @@ package tick
 import (
 	"context"
 	"github.com/TrueGameover/GoBackQuant/pkg/communication/token"
-	"github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	"github.com/TrueGameover/GoBackQuant/pkg/save/tick"
 	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/loader"
 	"github.com/schollz/progressbar/v3"
