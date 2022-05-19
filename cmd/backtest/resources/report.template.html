@@ -1,0 +1,163 @@
+<html lang="ru">
+<head>
+    <title>Report</title>
+    <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
+    <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
+
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/data.js"></script>
+
+    <script src="https://code.highcharts.com/stock/indicators/indicators-all.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/drag-panes.js"></script>
+
+    <script src="https://code.highcharts.com/modules/annotations-advanced.js"></script>
+    <script src="https://code.highcharts.com/modules/price-indicator.js"></script>
+    <script src="https://code.highcharts.com/modules/full-screen.js"></script>
+
+    <script src="https://code.highcharts.com/modules/stock-tools.js"></script>
+
+    <script src="https://code.highcharts.com/stock/modules/heikinashi.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/hollowcandlestick.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <style>
+        #container {
+            max-height: 1000px;
+            min-height: 99vh;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container" class="chart"></div>
+
+<script>
+    let jsonStr = '{{ JSON_OHLC_DATA }}';
+    let data = JSON.parse(jsonStr);
+
+    let ohlc = [];
+    for (let i = 0; i < data.length; i++) {
+        let row = data[i];
+        let date = row[0]
+        let open = row[1]
+        let high = row[2]
+        let low = row[3]
+        let close = row[4]
+
+        if (data && open && high && low && close) {
+            ohlc.push([
+                date,
+                open,
+                high,
+                low,
+                close,
+            ]);
+        }
+    }
+
+    let options = {
+        plotOptions: {
+            candlestick: {}
+        },
+        series: [
+            {
+                type: 'candlestick',
+                id: 'aapl-ohlc',
+                name: 'AAPL Stock Price',
+                data: ohlc,
+                useOhlcData: true,
+            },
+            // {
+            //     type: 'candlestick',
+            //     id: 'aapl-volume',
+            //     name: 'AAPL Volume',
+            //     data: volume,
+            //     yAxis: 1
+            // },
+        ],
+        yAxis: [
+            {
+                labels: {
+                    align: 'left'
+                },
+                height: '80%',
+                resize: {
+                    enabled: false
+                }
+            },
+            // {
+            //     labels: {
+            //         align: 'left'
+            //     },
+            //     top: '80%',
+            //     height: '20%',
+            //     offset: 0
+            // }
+        ],
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 800
+                },
+                chartOptions: {
+                    rangeSelector: {
+                        inputEnabled: false
+                    }
+                }
+            }]
+        }
+    };
+    Highcharts.stockChart('container', options);
+
+    // tooltip: {
+    //             shape: 'square',
+    //             headerShape: 'callout',
+    //             borderWidth: 0,
+    //             shadow: false,
+    //             positioner: function (width, height, point) {
+    //                 var chart = this.chart,
+    //                     position;
+    //
+    //                 if (point.isHeader) {
+    //                     position = {
+    //                         x: Math.max(
+    // Left
+    // side
+    // limit
+    // chart.plotLeft,
+    // Math.min(
+    //     point.plotX + chart.plotLeft - width / 2,
+    // Right
+    // side
+    // limit
+    // chart.chartWidth - width - chart.marginRight
+    // )
+    // ),
+    // y: point.plotY
+    // };
+    // } else {
+    //     position = {
+    //         x: point.series.chart.plotLeft,
+    //         y: point.series.yAxis.top - chart.plotTop
+    //     };
+    // }
+    //
+    // return position;
+    // }
+    // },
+
+    // responsive: {
+    //     rules: [{
+    //         condition: {
+    //             maxWidth: 800
+    //         },
+    //         chartOptions: {
+    //             rangeSelector: {
+    //                 inputEnabled: false
+    //             }
+    //         }
+    //     }]
+    // }
+</script>
+</body>
+</html>

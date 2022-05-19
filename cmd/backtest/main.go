@@ -1,20 +1,38 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/backtesting"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/example/strategy1"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
-	graph2 "github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/tick"
 	"github.com/shopspring/decimal"
+	"time"
 )
 
+//go:embed resources/report.template.html
+var reportTemplate string
+
 func main() {
-	csvProvider := provider.CsvProvider{}
-	err := csvProvider.Load("data/SPFB.SILV-3.22_210305_211124.txt")
-	var tickProvider provider.TickProvider = &csvProvider
+	csvProvider := provider.CsvProvider{
+		DateParseTemplate: time.RFC3339,
+		Delimiter:         ';',
+		Positions: provider.Positions{
+			Date:   0,
+			Open:   2,
+			High:   3,
+			Low:    4,
+			Close:  1,
+			Volume: 5,
+		},
+		FieldsPerRecord: 6,
+	}
+	err := csvProvider.Load("SBER_m1.csv")
+	var tickProvider tick.Provider = &csvProvider
 
 	if err != nil {
 		panic(err)
@@ -27,15 +45,23 @@ func main() {
 	positionManager := trade.PositionManager{}
 
 	tester := backtesting.StrategyTester{}
-	tester.Init(&positionManager, &balanceManager, &tickProvider, graph2.TimeFrameM15)
+	tester.Init(&positionManager, &balanceManager, &tickProvider, graph.TimeFrameM15)
 
 	var strategy backtesting.Strategy = &strategy1.TemaAndRStrategy{}
 
-	tester.Run(&strategy)
+	err = tester.Run(&strategy)
+	if err != nil {
+		panic(err)
+	}
 
 	history := tester.GetHistorySaver()
 	total := history.GetDealsCount()
 	profitDealsCount := history.GetProfitDealsCount()
+
+	err = history.GenerateReport(tester.GetGraph(), reportTemplate, "report.html")
+	if err != nil {
+		panic(err)
+	}
 
 	if total > 0 {
 		fmt.Printf("Финальный баланс: %s\n", balanceManager.GetBalance().String())

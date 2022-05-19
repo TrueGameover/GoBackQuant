@@ -1,6 +1,7 @@
 package backtesting
 
 import (
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/history"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
@@ -12,7 +13,7 @@ type StrategyTester struct {
 	balanceManager  *money.BalanceManager
 	tickProvider    *tick.Provider
 	graph           *graph.Graph
-	historySaver    *trade.HistorySaver
+	historySaver    *history.Saver
 }
 
 func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balanceManager *money.BalanceManager, tickProvider *tick.Provider, timeframe graph.TimeFrame) {
@@ -20,7 +21,7 @@ func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balan
 	tester.balanceManager = balanceManager
 	tester.tickProvider = tickProvider
 	tester.graph = &graph.Graph{Timeframe: timeframe}
-	tester.historySaver = &trade.HistorySaver{}
+	tester.historySaver = &history.Saver{}
 }
 
 func (tester *StrategyTester) Run(target *Strategy) error {
@@ -90,6 +91,6 @@ func (tester *StrategyTester) Run(target *Strategy) error {
 func (tester *StrategyTester) GetGraph() *graph.Graph {
 	return tester.graph
 }
-func (tester *StrategyTester) GetHistorySaver() *trade.HistorySaver {
+func (tester *StrategyTester) GetHistorySaver() *history.Saver {
 	return tester.historySaver
 }

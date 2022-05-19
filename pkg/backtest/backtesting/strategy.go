@@ -1,7 +1,7 @@
 package backtesting
 
 import (
-	"github.com/TrueGameover/GoBackQuant/pkg/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	"github.com/shopspring/decimal"
 )
 
