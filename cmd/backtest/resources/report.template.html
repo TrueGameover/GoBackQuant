@@ -57,8 +57,19 @@
 
     let options = {
         plotOptions: {
-            candlestick: {}
+            candlestick: {},
         },
+        // rangeSelector: {
+        //     buttons: [
+        //         {
+        //             type: 'minute',
+        //             count: 15,
+        //             text: 'M1'
+        //         },
+        //     ],
+        //     selected: 1,
+        //     inputEnabled: false
+        // },
         series: [
             {
                 type: 'candlestick',
@@ -66,6 +77,14 @@
                 name: 'AAPL Stock Price',
                 data: ohlc,
                 useOhlcData: true,
+                // pointInterval: 60 * 1000,
+                dataGrouping: {
+                    // groupPixelWidth: 1,
+                    // forced: true,
+                    // units: [
+                    //     ['minute', [1, 2]]
+                    // ]
+                }
             },
             // {
             //     type: 'candlestick',
@@ -94,18 +113,18 @@
             //     offset: 0
             // }
         ],
-        responsive: {
-            rules: [{
-                condition: {
-                    maxWidth: 800
-                },
-                chartOptions: {
-                    rangeSelector: {
-                        inputEnabled: false
-                    }
-                }
-            }]
-        }
+        // responsive: {
+        //     rules: [{
+        //         condition: {
+        //             maxWidth: 800
+        //         },
+        //         chartOptions: {
+        //             rangeSelector: {
+        //                 inputEnabled: false
+        //             }
+        //         }
+        //     }]
+        // }
     };
     Highcharts.stockChart('container', options);
 
