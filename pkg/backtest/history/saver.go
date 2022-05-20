@@ -10,6 +10,7 @@ import (
 	"github.com/thoas/go-funk"
 	"os"
 	"strings"
+	"time"
 )
 
 type Trade struct {
@@ -66,9 +67,19 @@ func (saver *Saver) GetLossDealsCount() int {
 
 func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path string) error {
 	reportHtml := strings.Clone(template)
-	json, err := saver.prepareData(graph.GetTicks())
+	json, err := saver.prepareData(graph.GetBars())
+	if err != nil {
+		return err
+	}
 
 	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_OHLC_DATA }}", json)
+
+	tradesJson, err := saver.prepareDeals(saver.deals)
+	if err != nil {
+		return err
+	}
+
+	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_TRADES_DATA }}", tradesJson)
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -95,15 +106,15 @@ func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path str
 	return nil
 }
 
-func (saver *Saver) prepareData(ticks []*graph.Tick) (string, error) {
+func (saver *Saver) prepareData(bars []*graph.Bar) (string, error) {
 	builder := strings.Builder{}
 	_, err := builder.WriteRune('[')
 	if err != nil {
 		return "", err
 	}
 
-	for _, tick := range ticks {
-		tickStr := saver.convertTick(tick)
+	for _, tick := range bars {
+		tickStr := saver.convertTick(&tick.Tick)
 
 		if builder.Len() > 1 {
 			_, err = builder.WriteRune(',')
@@ -126,7 +137,52 @@ func (saver *Saver) prepareData(ticks []*graph.Tick) (string, error) {
 	return builder.String(), nil
 }
 
-func (saver Saver) convertTick(tick *graph.Tick) string {
+func (saver *Saver) prepareDeals(trades []*Trade) (string, error) {
+	builder := strings.Builder{}
+	_, err := builder.WriteRune('[')
+	if err != nil {
+		return "", err
+	}
+
+	for _, t := range trades {
+		tradeStr := saver.convertTrade(t, true)
+
+		if builder.Len() > 1 {
+			_, err = builder.WriteRune(',')
+			if err != nil {
+				return "", err
+			}
+		}
+
+		_, err = builder.WriteString(tradeStr)
+		if err != nil {
+			return "", err
+		}
+
+		tradeStr = saver.convertTrade(t, false)
+
+		if builder.Len() > 1 {
+			_, err = builder.WriteRune(',')
+			if err != nil {
+				return "", err
+			}
+		}
+
+		_, err = builder.WriteString(tradeStr)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	_, err = builder.WriteRune(']')
+	if err != nil {
+		return "", err
+	}
+
+	return builder.String(), nil
+}
+
+func (saver *Saver) convertTick(tick *graph.Tick) string {
 	return fmt.Sprintf(
 		"[%d, %s, %s, %s, %s]",
 		tick.Date.UnixMilli(),
@@ -135,4 +191,50 @@ func (saver Saver) convertTick(tick *graph.Tick) string {
 		tick.Low.String(),
 		tick.Close.String(),
 	)
+}
+
+func (saver Saver) convertTrade(trade2 *Trade, open bool) string {
+	var date time.Time
+
+	if open {
+		date = trade2.Position.Open.Date
+
+	} else {
+		date = trade2.Position.Closed.Date
+	}
+
+	var title string
+
+	if open {
+		title = "Buy"
+	} else {
+		title = "Sell"
+	}
+
+	return fmt.Sprintf(
+		"[%d, \"%s\", \"%s\"]",
+		date.UnixMilli(),
+		title,
+		"no description",
+	)
+}
+
+func (saver *Saver) findOpenDeal(bar *graph.Bar) *Trade {
+	for _, deal := range saver.deals {
+		if deal.Position.Open.Id == bar.Id {
+			return deal
+		}
+	}
+
+	return nil
+}
+
+func (saver *Saver) findCloseDeal(bar *graph.Bar) *Trade {
+	for _, deal := range saver.deals {
+		if deal.Position.Closed.Id == bar.Id {
+			return deal
+		}
+	}
+
+	return nil
 }

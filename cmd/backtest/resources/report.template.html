@@ -55,6 +55,22 @@
         }
     }
 
+    let tradesJsonStr = '{{ JSON_TRADES_DATA }}';
+    let tradesDataRaw = JSON.parse(tradesJsonStr);
+    let tradesData = [];
+
+    for (let j = 0; j < tradesDataRaw.length; j++) {
+        let date = tradesDataRaw[j][0];
+        let title = tradesDataRaw[j][1];
+        let text = tradesDataRaw[j][2];
+
+        tradesData.push({
+            x: date,
+            title: title,
+            text: text,
+        });
+    }
+
     let options = {
         plotOptions: {
             candlestick: {},
@@ -73,7 +89,7 @@
         series: [
             {
                 type: 'candlestick',
-                id: 'aapl-ohlc',
+                id: 'graph',
                 name: 'AAPL Stock Price',
                 data: ohlc,
                 useOhlcData: true,
@@ -86,6 +102,14 @@
                     // ]
                 }
             },
+            {
+                type: 'flags',
+                onSeries: 'graph',
+                shape: 'squarepin',
+                width: 16,
+                fillColor: '#298f1e',
+                data: tradesData
+            }
             // {
             //     type: 'candlestick',
             //     id: 'aapl-volume',

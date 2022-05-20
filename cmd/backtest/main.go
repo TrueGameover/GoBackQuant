@@ -45,7 +45,7 @@ func main() {
 	positionManager := trade.PositionManager{}
 
 	tester := backtesting.StrategyTester{}
-	tester.Init(&positionManager, &balanceManager, &tickProvider, graph.TimeFrameM15)
+	tester.Init(&positionManager, &balanceManager, &tickProvider, graph.TimeFrameH1)
 
 	var strategy backtesting.Strategy = &strategy1.TemaAndRStrategy{}
 

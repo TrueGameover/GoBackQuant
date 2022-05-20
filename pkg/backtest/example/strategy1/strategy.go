@@ -39,11 +39,11 @@ func (strategy *TemaAndRStrategy) IsOpenPosition() bool {
 }
 
 func (strategy *TemaAndRStrategy) GetStopLoss(price decimal.Decimal) decimal.Decimal {
-	return price.Sub(decimal.NewFromFloat(0.05))
+	return price.Sub(decimal.NewFromFloat(30))
 }
 
 func (strategy *TemaAndRStrategy) GetTakeProfit(price decimal.Decimal) decimal.Decimal {
-	return price.Add(decimal.NewFromFloat(0.15))
+	return price.Add(decimal.NewFromFloat(60))
 }
 
 func (strategy *TemaAndRStrategy) GetPositionType() uint {
