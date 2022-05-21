@@ -97,7 +97,13 @@ func (c *CsvTicksTransformer) getCsvProvider() (tick.Provider, error) {
 		},
 		FieldsPerRecord: 6,
 	}
-	err := csvProvider.Load(c.parseInputFilePath)
+
+	inputTimeFrame, err := graph.ParseTimeFrame(c.parseInputTimeframe)
+	if err != nil {
+		return nil, err
+	}
+
+	err = csvProvider.Load(c.parseInputFilePath, "", inputTimeFrame)
 	if err != nil {
 		return nil, err
 	}

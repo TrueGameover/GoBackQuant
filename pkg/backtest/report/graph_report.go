@@ -1,23 +1,19 @@
-package history
+package report
 
 import (
 	"bufio"
-	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/history"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
-	"github.com/shopspring/decimal"
 	"github.com/thoas/go-funk"
+	template "html/template"
 	"os"
 	"strings"
 )
 
-type Trade struct {
-	Id        uint64
-	Success   bool
-	MoneyDiff decimal.Decimal
-	Position  *trade.Position
+type GraphReport struct {
 }
 
 type highchartsCandle struct {
@@ -34,54 +30,21 @@ type highchartsTrade struct {
 	Text  string `json:"text"`
 }
 
-type Saver struct {
-	counter uint64
-	deals   []*Trade
-}
-
-func (saver *Saver) AddToHistory(positions []*trade.Position) {
-	for _, position := range positions {
-		saver.saveToHistory(position)
-	}
-}
-
-func (saver *Saver) saveToHistory(position *trade.Position) {
-	diff := position.GetPipsAfterClose()
-
-	t := Trade{
-		Id:        saver.counter,
-		Success:   diff.IsPositive(),
-		MoneyDiff: diff,
-		Position:  position,
+func (saver *GraphReport) GenerateReport(tradeHistories []*history.TradeHistory, rawTemplate string, path string, title string) error {
+	reportTemplate, err := template.New("report").Parse(rawTemplate)
+	if err != nil {
+		return err
 	}
 
-	saver.counter++
-	saver.deals = append(saver.deals, &t)
-}
-
-func (saver *Saver) GetDealsCount() int {
-	return len(saver.deals)
-}
-
-func (saver *Saver) GetProfitDealsCount() int {
-	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
-		return trade.Success
-	}).([]*Trade)
-
-	return len(trades)
-}
-
-func (saver *Saver) GetLossDealsCount() int {
-	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
-		return !trade.Success
-	}).([]*Trade)
-
-	return len(trades)
-}
-
-func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path string, title string) error {
-	reportHtml := strings.Clone(template)
-	reportHtml = strings.ReplaceAll(reportHtml, "{{ TITLE }}", title)
+	data := struct {
+		Title            string
+		CandlesJson      string
+		OpenTrandesJson  string
+		ClosedTradesJson string
+		GraphCount       int
+	}{
+		Title: title,
+	}
 
 	candlesJson, err := saver.prepareCandles(graph.GetBars())
 	if err != nil {
@@ -129,7 +92,7 @@ func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path str
 	return nil
 }
 
-func (saver *Saver) prepareCandles(bars []*graph.Bar) (string, error) {
+func (saver *GraphReport) prepareCandles(bars []*graph.Bar) (string, error) {
 	candles := make([]*highchartsCandle, len(bars), len(bars))
 
 	for i, tick := range bars {
@@ -146,7 +109,7 @@ func (saver *Saver) prepareCandles(bars []*graph.Bar) (string, error) {
 	return string(candlesJson), nil
 }
 
-func (saver *Saver) prepareOpenPositions(trades []*Trade) (string, error) {
+func (saver *GraphReport) prepareOpenPositions(trades []*history.Trade) (string, error) {
 	hTrades := make([]*highchartsTrade, len(trades), len(trades))
 
 	for i, t := range trades {
@@ -163,7 +126,7 @@ func (saver *Saver) prepareOpenPositions(trades []*Trade) (string, error) {
 	return string(tradesJson), nil
 }
 
-func (saver *Saver) prepareClosedPositions(trades []*Trade) (string, error) {
+func (saver *GraphReport) prepareClosedPositions(trades []*history.Trade) (string, error) {
 	hTrades := make([]*highchartsTrade, len(trades), len(trades))
 
 	for i, t := range trades {
@@ -180,7 +143,7 @@ func (saver *Saver) prepareClosedPositions(trades []*Trade) (string, error) {
 	return string(tradesJson), nil
 }
 
-func (saver *Saver) convertTick(tick *graph.Tick) *highchartsCandle {
+func (saver *GraphReport) convertTick(tick *graph.Tick) *highchartsCandle {
 	candle := highchartsCandle{
 		X:     tick.Date.UnixMilli(),
 		Open:  tick.Open.InexactFloat64(),
@@ -192,7 +155,7 @@ func (saver *Saver) convertTick(tick *graph.Tick) *highchartsCandle {
 	return &candle
 }
 
-func (saver Saver) convertOpenTrade(trade2 *Trade) *highchartsTrade {
+func (saver *GraphReport) convertOpenTrade(trade2 *history.Trade) *highchartsTrade {
 	t := highchartsTrade{
 		X:     trade2.Position.Open.Tick.Date.UnixMilli(),
 		Title: "",
@@ -211,7 +174,7 @@ func (saver Saver) convertOpenTrade(trade2 *Trade) *highchartsTrade {
 	return &t
 }
 
-func (saver Saver) convertCloseTrade(trade2 *Trade) *highchartsTrade {
+func (saver *GraphReport) convertCloseTrade(trade2 *history.Trade) *highchartsTrade {
 	t := highchartsTrade{
 		X:     trade2.Position.Closed.Tick.Date.UnixMilli(),
 		Title: "",
@@ -230,7 +193,7 @@ func (saver Saver) convertCloseTrade(trade2 *Trade) *highchartsTrade {
 	return &t
 }
 
-func (saver *Saver) findOpenDeal(bar *graph.Bar) *Trade {
+func (saver *GraphReport) findOpenDeal(bar *graph.Bar) *history.Trade {
 	for _, deal := range saver.deals {
 		if deal.Position.Open.Id == bar.Id {
 			return deal
@@ -240,7 +203,7 @@ func (saver *Saver) findOpenDeal(bar *graph.Bar) *Trade {
 	return nil
 }
 
-func (saver *Saver) findCloseDeal(bar *graph.Bar) *Trade {
+func (saver *GraphReport) findCloseDeal(bar *graph.Bar) *history.Trade {
 	for _, deal := range saver.deals {
 		if deal.Position.Closed.Id == bar.Id {
 			return deal
@@ -248,4 +211,20 @@ func (saver *Saver) findCloseDeal(bar *graph.Bar) *Trade {
 	}
 
 	return nil
+}
+
+func (saver *TradeHistory) GetProfitDealsCount() int {
+	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
+		return trade.Success
+	}).([]*Trade)
+
+	return len(trades)
+}
+
+func (saver *TradeHistory) GetLossDealsCount() int {
+	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
+		return !trade.Success
+	}).([]*Trade)
+
+	return len(trades)
 }

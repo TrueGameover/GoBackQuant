@@ -17,6 +17,8 @@ type CsvProvider struct {
 	Positions         Positions
 	FieldsPerRecord   uint
 	totalLines        uint64
+	title             string
+	timeFrame         graph.TimeFrame
 }
 
 type Positions struct {
@@ -90,6 +92,10 @@ func (provider *CsvProvider) GetNextTick() (*graph.Tick, error) {
 	return &tick, nil
 }
 
+func (provider *CsvProvider) GetTitle() string {
+	return provider.title
+}
+
 func (provider *CsvProvider) GetTotal() uint64 {
 	return provider.totalLines
 }
@@ -98,7 +104,11 @@ func (provider *CsvProvider) HasTicks() bool {
 	return true
 }
 
-func (provider *CsvProvider) Load(path string) error {
+func (provider *CsvProvider) GetTimeFrame() graph.TimeFrame {
+	return provider.timeFrame
+}
+
+func (provider *CsvProvider) Load(path string, title string, targetFrame graph.TimeFrame) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -125,6 +135,9 @@ func (provider *CsvProvider) Load(path string) error {
 	if err != nil {
 		return err
 	}
+
+	provider.title = title
+	provider.timeFrame = targetFrame
 
 	return nil
 }

@@ -106,6 +106,7 @@ func (bar *Bar) Recalculate() {
 
 type Graph struct {
 	Timeframe  TimeFrame
+	Title      string
 	bars       []*Bar
 	lastTickId uint64
 	currentBar *Bar

@@ -9,66 +9,80 @@ import (
 )
 
 type StrategyTester struct {
-	positionManager *trade.PositionManager
-	balanceManager  *money.BalanceManager
-	tickProvider    *tick.Provider
-	graph           *graph.Graph
-	historySaver    *history.Saver
+	positionManagers []*trade.PositionManager
+	balanceManager   *money.BalanceManager
+	tickProviders    []tick.Provider
+	graphs           []*graph.Graph
+	historySavers    []*history.TradeHistory
 }
 
-func (tester *StrategyTester) Init(positionManager *trade.PositionManager, balanceManager *money.BalanceManager, tickProvider *tick.Provider, timeframe graph.TimeFrame) {
-	tester.positionManager = positionManager
+func (tester *StrategyTester) Init(balanceManager *money.BalanceManager, tickProviders []tick.Provider) {
 	tester.balanceManager = balanceManager
-	tester.tickProvider = tickProvider
-	tester.graph = &graph.Graph{Timeframe: timeframe}
-	tester.historySaver = &history.Saver{}
+	tester.tickProviders = tickProviders
+	tester.graphs = make([]*graph.Graph, len(tickProviders), len(tickProviders))
+	tester.positionManagers = make([]*trade.PositionManager, len(tickProviders), len(tickProviders))
+
+	for i, tickProvider := range tickProviders {
+		g := graph.Graph{
+			Timeframe: tickProvider.GetTimeFrame(),
+			Title:     tickProvider.GetTitle(),
+		}
+
+		tester.graphs[i] = &g
+		tester.positionManagers[i] = &trade.PositionManager{}
+		tester.historySavers[i] = &history.TradeHistory{Graph: &g}
+	}
 }
 
-func (tester *StrategyTester) Run(target *Strategy) error {
-	tickProvider := *tester.tickProvider
-	strategy := *target
+func (tester *StrategyTester) Run(s *Strategy) error {
+	strategy := *s
 
-	nextTick, err := tickProvider.GetNextTick()
-	if err != nil {
-		return err
-	}
+	for i, tickProvider := range tester.tickProviders {
+		g := tester.graphs[i]
+		positionManager := tester.positionManagers[i]
+		historySaver := tester.historySavers[i]
 
-	for nextTick != nil {
-		strategy.BeforeTick(tester.graph)
+		nextTick, err := tickProvider.GetNextTick()
+		if err != nil {
+			return err
+		}
 
-		tester.graph.AddTick(nextTick)
-		closedPositions := tester.positionManager.UpdateForClosePositions(nextTick, tester.graph.GetFreshBar())
+		strategy.BeforeTick(tester.graphs)
+
+		g.AddTick(nextTick)
+
+		closedPositions := positionManager.UpdateForClosePositions(nextTick, g.GetFreshBar())
 		if len(closedPositions) > 0 {
 			for _, closedPosition := range closedPositions {
-				usedMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())
+				usedMoney := strategy.GetSingleLotPrice(g).Mul(strategy.GetLotSize(g))
 
 				if tester.balanceManager.FreeMoney(usedMoney) {
-					balanceDiff := strategy.GetSinglePipPrice().Mul(closedPosition.GetPipsAfterClose()).Div(strategy.GetSinglePipValue())
+					balanceDiff := strategy.GetSinglePipPrice(g).Mul(closedPosition.GetPipsAfterClose()).Div(strategy.GetSinglePipValue(g))
 					tester.balanceManager.AddDiff(balanceDiff)
 				}
 			}
 
-			tester.historySaver.AddToHistory(closedPositions)
+			historySaver.AddToHistory(closedPositions)
 		}
 
-		strategy.Tick(nextTick.Close)
+		strategy.Tick(nextTick, g)
 
-		strategy.AfterTick(tester.graph)
+		strategy.AfterTick(tester.graphs)
 
-		if strategy.IsOpenPosition() {
-			if strategy.GetPositionsLimit() == 0 || (tester.positionManager.GetOpenedPositionsCount() < strategy.GetPositionsLimit() && strategy.GetPositionsLimit() > 0) {
-				holdMoney := strategy.GetSingleLotPrice().Mul(strategy.GetLotSize())
+		if strategy.IsOpenPosition(g) {
+			if strategy.GetPositionsLimit(g) == 0 || (positionManager.GetOpenedPositionsCount() < strategy.GetPositionsLimit(g) && strategy.GetPositionsLimit(g) > 0) {
+				holdMoney := strategy.GetSingleLotPrice(g).Mul(strategy.GetLotSize(g))
 
 				if tester.balanceManager.HoldMoney(holdMoney) {
-					tester.balanceManager.Commission(strategy.GetTradeFee())
+					tester.balanceManager.Commission(strategy.GetTradeFee(g))
 
-					tester.positionManager.OpenPosition(
-						strategy.GetPositionType(),
+					positionManager.OpenPosition(
+						strategy.GetPositionType(g),
 						nextTick,
-						tester.graph.GetFreshBar(),
-						strategy.GetLotSize(),
-						strategy.GetStopLoss(nextTick.Close),
-						strategy.GetTakeProfit(nextTick.Close),
+						g.GetFreshBar(),
+						strategy.GetLotSize(g),
+						strategy.GetStopLoss(nextTick.Close, g),
+						strategy.GetTakeProfit(nextTick.Close, g),
 					)
 				}
 			}
@@ -84,13 +98,17 @@ func (tester *StrategyTester) Run(target *Strategy) error {
 		}
 	}
 
-	tester.positionManager.CloseAll(tester.graph.GetFreshBar())
+	for i, manager := range tester.positionManagers {
+		g := tester.graphs[i]
+		manager.CloseAll(g.GetFreshBar())
+	}
+
 	return nil
 }
 
-func (tester *StrategyTester) GetGraph() *graph.Graph {
-	return tester.graph
+func (tester *StrategyTester) GetGraphs() []*graph.Graph {
+	return tester.graphs
 }
-func (tester *StrategyTester) GetHistorySaver() *history.Saver {
-	return tester.historySaver
+func (tester *StrategyTester) GetHistorySavers() []*history.TradeHistory {
+	return tester.historySavers
 }
