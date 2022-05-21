@@ -1,6 +1,7 @@
 package backtesting
 
 import (
+	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	"github.com/shopspring/decimal"
 )
@@ -14,7 +15,7 @@ type Strategy interface {
 	IsOpenPosition() bool
 	GetStopLoss(price decimal.Decimal) decimal.Decimal
 	GetTakeProfit(price decimal.Decimal) decimal.Decimal
-	GetPositionType() uint
+	GetPositionType() trade.PositionType
 	GetLotSize() decimal.Decimal
 	GetSinglePipPrice() decimal.Decimal
 	GetSingleLotPrice() decimal.Decimal

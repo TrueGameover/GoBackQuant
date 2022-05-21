@@ -45,7 +45,7 @@ func main() {
 	positionManager := trade.PositionManager{}
 
 	tester := backtesting.StrategyTester{}
-	tester.Init(&positionManager, &balanceManager, &tickProvider, graph.TimeFrameH1)
+	tester.Init(&positionManager, &balanceManager, &tickProvider, graph.TimeFrameM15)
 
 	var strategy backtesting.Strategy = &strategy1.TemaAndRStrategy{}
 
@@ -58,7 +58,7 @@ func main() {
 	total := history.GetDealsCount()
 	profitDealsCount := history.GetProfitDealsCount()
 
-	err = history.GenerateReport(tester.GetGraph(), reportTemplate, "report.html")
+	err = history.GenerateReport(tester.GetGraph(), reportTemplate, "report.html", "SBER")
 	if err != nil {
 		panic(err)
 	}

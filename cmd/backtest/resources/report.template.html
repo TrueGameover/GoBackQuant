@@ -33,43 +33,11 @@
 
 <script>
     let jsonStr = '{{ JSON_OHLC_DATA }}';
-    let data = JSON.parse(jsonStr);
-
-    let ohlc = [];
-    for (let i = 0; i < data.length; i++) {
-        let row = data[i];
-        let date = row[0]
-        let open = row[1]
-        let high = row[2]
-        let low = row[3]
-        let close = row[4]
-
-        if (data && open && high && low && close) {
-            ohlc.push([
-                date,
-                open,
-                high,
-                low,
-                close,
-            ]);
-        }
-    }
-
-    let tradesJsonStr = '{{ JSON_TRADES_DATA }}';
-    let tradesDataRaw = JSON.parse(tradesJsonStr);
-    let tradesData = [];
-
-    for (let j = 0; j < tradesDataRaw.length; j++) {
-        let date = tradesDataRaw[j][0];
-        let title = tradesDataRaw[j][1];
-        let text = tradesDataRaw[j][2];
-
-        tradesData.push({
-            x: date,
-            title: title,
-            text: text,
-        });
-    }
+    let dataOHLC = JSON.parse(jsonStr);
+    let jsonOpenTrades = '{{ JSON_TRADES_OPEN }}';
+    let openTradesData = JSON.parse(jsonOpenTrades);
+    let jsonClosedTrades = '{{ JSON_TRADES_CLOSED }}';
+    let closedTradesData = JSON.parse(jsonClosedTrades);
 
     let options = {
         plotOptions: {
@@ -90,10 +58,11 @@
             {
                 type: 'candlestick',
                 id: 'graph',
-                name: 'AAPL Stock Price',
-                data: ohlc,
-                useOhlcData: true,
-                // pointInterval: 60 * 1000,
+                name: '{{ TITLE }}',
+                data: dataOHLC,
+                turboThreshold: 0,
+                color: '#c43a2d',
+                upColor: '#2eb832',
                 dataGrouping: {
                     // groupPixelWidth: 1,
                     // forced: true,
@@ -105,11 +74,32 @@
             {
                 type: 'flags',
                 onSeries: 'graph',
+                shape: 'circlepin',
+                stackDistance: 30,
+                fillColor: '#e2cc0b',
+                y: -60,
+                states: {
+                    inactive: {
+                        enabled: false
+                    }
+                },
+                data: openTradesData,
+            },
+
+            {
+                type: 'flags',
+                onSeries: 'graph',
                 shape: 'squarepin',
-                width: 16,
-                fillColor: '#298f1e',
-                data: tradesData
-            }
+                stackDistance: 30,
+                fillColor: '#13a690',
+                y: -90,
+                states: {
+                    inactive: {
+                        enabled: false
+                    }
+                },
+                data: closedTradesData,
+            },
             // {
             //     type: 'candlestick',
             //     id: 'aapl-volume',

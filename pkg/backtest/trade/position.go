@@ -6,9 +6,11 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+type PositionType uint
+
 const (
-	TypeLong  uint = 1
-	TypeShort      = 2
+	TypeLong  PositionType = 1
+	TypeShort PositionType = 2
 )
 
 type Position struct {
@@ -18,7 +20,7 @@ type Position struct {
 	StopLossPrice   decimal.Decimal
 	TakeProfitPrice decimal.Decimal
 	Lot             decimal.Decimal
-	PositionType    uint
+	PositionType    PositionType
 	Open            *graph.Bar
 	Closed          *graph.Bar
 }
@@ -57,7 +59,7 @@ type PositionManager struct {
 	counter         uint64
 }
 
-func (manager *PositionManager) OpenPosition(positionType uint, tick *graph.Tick, bar *graph.Bar, lot decimal.Decimal, stopLoss decimal.Decimal, takeProfit decimal.Decimal) uint64 {
+func (manager *PositionManager) OpenPosition(positionType PositionType, tick *graph.Tick, bar *graph.Bar, lot decimal.Decimal, stopLoss decimal.Decimal, takeProfit decimal.Decimal) uint64 {
 	position := Position{
 		Id:              manager.counter,
 		Price:           tick.Close,

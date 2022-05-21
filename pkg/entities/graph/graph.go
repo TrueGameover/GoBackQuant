@@ -18,6 +18,14 @@ type Tick struct {
 	Volume decimal.Decimal
 }
 
+func (t *Tick) IsGrowing() bool {
+	return t.Close.GreaterThanOrEqual(t.Open)
+}
+
+func (t *Tick) IsFalling() bool {
+	return t.Close.LessThan(t.Open)
+}
+
 type TimeFrame uint
 
 const (

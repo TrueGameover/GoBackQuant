@@ -3,6 +3,7 @@ package history
 import (
 	"bufio"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
@@ -10,7 +11,6 @@ import (
 	"github.com/thoas/go-funk"
 	"os"
 	"strings"
-	"time"
 )
 
 type Trade struct {
@@ -18,6 +18,20 @@ type Trade struct {
 	Success   bool
 	MoneyDiff decimal.Decimal
 	Position  *trade.Position
+}
+
+type highchartsCandle struct {
+	X     int64   `json:"x"`
+	Open  float64 `json:"open"`
+	High  float64 `json:"high"`
+	Low   float64 `json:"low"`
+	Close float64 `json:"close"`
+}
+
+type highchartsTrade struct {
+	X     int64  `json:"x"`
+	Title string `json:"title"`
+	Text  string `json:"text"`
 }
 
 type Saver struct {
@@ -65,21 +79,30 @@ func (saver *Saver) GetLossDealsCount() int {
 	return len(trades)
 }
 
-func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path string) error {
+func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path string, title string) error {
 	reportHtml := strings.Clone(template)
-	json, err := saver.prepareData(graph.GetBars())
+	reportHtml = strings.ReplaceAll(reportHtml, "{{ TITLE }}", title)
+
+	candlesJson, err := saver.prepareCandles(graph.GetBars())
 	if err != nil {
 		return err
 	}
 
-	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_OHLC_DATA }}", json)
+	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_OHLC_DATA }}", candlesJson)
 
-	tradesJson, err := saver.prepareDeals(saver.deals)
+	openTradesJson, err := saver.prepareOpenPositions(saver.deals)
 	if err != nil {
 		return err
 	}
 
-	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_TRADES_DATA }}", tradesJson)
+	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_TRADES_OPEN }}", openTradesJson)
+
+	closedTradesJson, err := saver.prepareClosedPositions(saver.deals)
+	if err != nil {
+		return err
+	}
+
+	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_TRADES_CLOSED }}", closedTradesJson)
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -106,117 +129,105 @@ func (saver *Saver) GenerateReport(graph *graph.Graph, template string, path str
 	return nil
 }
 
-func (saver *Saver) prepareData(bars []*graph.Bar) (string, error) {
-	builder := strings.Builder{}
-	_, err := builder.WriteRune('[')
+func (saver *Saver) prepareCandles(bars []*graph.Bar) (string, error) {
+	candles := make([]*highchartsCandle, len(bars), len(bars))
+
+	for i, tick := range bars {
+		candle := saver.convertTick(&tick.Tick)
+
+		candles[i] = candle
+	}
+
+	candlesJson, err := json.Marshal(&candles)
 	if err != nil {
 		return "", err
 	}
 
-	for _, tick := range bars {
-		tickStr := saver.convertTick(&tick.Tick)
-
-		if builder.Len() > 1 {
-			_, err = builder.WriteRune(',')
-			if err != nil {
-				return "", err
-			}
-		}
-
-		_, err = builder.WriteString(tickStr)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	_, err = builder.WriteRune(']')
-	if err != nil {
-		return "", err
-	}
-
-	return builder.String(), nil
+	return string(candlesJson), nil
 }
 
-func (saver *Saver) prepareDeals(trades []*Trade) (string, error) {
-	builder := strings.Builder{}
-	_, err := builder.WriteRune('[')
+func (saver *Saver) prepareOpenPositions(trades []*Trade) (string, error) {
+	hTrades := make([]*highchartsTrade, len(trades), len(trades))
+
+	for i, t := range trades {
+		hTrade := saver.convertOpenTrade(t)
+
+		hTrades[i] = hTrade
+	}
+
+	tradesJson, err := json.Marshal(hTrades)
 	if err != nil {
 		return "", err
 	}
 
-	for _, t := range trades {
-		tradeStr := saver.convertTrade(t, true)
+	return string(tradesJson), nil
+}
 
-		if builder.Len() > 1 {
-			_, err = builder.WriteRune(',')
-			if err != nil {
-				return "", err
-			}
-		}
+func (saver *Saver) prepareClosedPositions(trades []*Trade) (string, error) {
+	hTrades := make([]*highchartsTrade, len(trades), len(trades))
 
-		_, err = builder.WriteString(tradeStr)
-		if err != nil {
-			return "", err
-		}
+	for i, t := range trades {
+		hTrade := saver.convertCloseTrade(t)
 
-		tradeStr = saver.convertTrade(t, false)
-
-		if builder.Len() > 1 {
-			_, err = builder.WriteRune(',')
-			if err != nil {
-				return "", err
-			}
-		}
-
-		_, err = builder.WriteString(tradeStr)
-		if err != nil {
-			return "", err
-		}
+		hTrades[i] = hTrade
 	}
 
-	_, err = builder.WriteRune(']')
+	tradesJson, err := json.Marshal(hTrades)
 	if err != nil {
 		return "", err
 	}
 
-	return builder.String(), nil
+	return string(tradesJson), nil
 }
 
-func (saver *Saver) convertTick(tick *graph.Tick) string {
-	return fmt.Sprintf(
-		"[%d, %s, %s, %s, %s]",
-		tick.Date.UnixMilli(),
-		tick.Open.String(),
-		tick.High.String(),
-		tick.Low.String(),
-		tick.Close.String(),
-	)
+func (saver *Saver) convertTick(tick *graph.Tick) *highchartsCandle {
+	candle := highchartsCandle{
+		X:     tick.Date.UnixMilli(),
+		Open:  tick.Open.InexactFloat64(),
+		High:  tick.High.InexactFloat64(),
+		Low:   tick.Low.InexactFloat64(),
+		Close: tick.Close.InexactFloat64(),
+	}
+
+	return &candle
 }
 
-func (saver Saver) convertTrade(trade2 *Trade, open bool) string {
-	var date time.Time
+func (saver Saver) convertOpenTrade(trade2 *Trade) *highchartsTrade {
+	t := highchartsTrade{
+		X:     trade2.Position.Open.Tick.Date.UnixMilli(),
+		Title: "",
+		Text:  "",
+	}
 
-	if open {
-		date = trade2.Position.Open.Date
+	if trade2.Position.PositionType == trade.TypeLong {
+		t.Title = "Long"
+		t.Text = fmt.Sprintf("Position #%d", trade2.Position.Id)
 
 	} else {
-		date = trade2.Position.Closed.Date
+		t.Title = "Short"
+		t.Text = fmt.Sprintf("Position #%d", trade2.Position.Id)
 	}
 
-	var title string
+	return &t
+}
 
-	if open {
-		title = "Buy"
+func (saver Saver) convertCloseTrade(trade2 *Trade) *highchartsTrade {
+	t := highchartsTrade{
+		X:     trade2.Position.Closed.Tick.Date.UnixMilli(),
+		Title: "",
+		Text:  "",
+	}
+
+	if trade2.Position.PositionType == trade.TypeLong {
+		t.Title = "Long closed"
+		t.Text = fmt.Sprintf("Position #%d<br>Profit: %s", trade2.Position.Id, trade2.MoneyDiff.String())
+
 	} else {
-		title = "Sell"
+		t.Title = "Short closed"
+		t.Text = fmt.Sprintf("Position #%d", trade2.Position.Id)
 	}
 
-	return fmt.Sprintf(
-		"[%d, \"%s\", \"%s\"]",
-		date.UnixMilli(),
-		title,
-		"no description",
-	)
+	return &t
 }
 
 func (saver *Saver) findOpenDeal(bar *graph.Bar) *Trade {
