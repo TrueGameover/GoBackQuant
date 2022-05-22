@@ -21,176 +21,81 @@
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
     <style>
-        #container {
-            max-height: 1000px;
-            min-height: 99vh;
+        .container {
+            /*max-height: 700px;*/
+            min-height: 600px;
         }
     </style>
 </head>
 <body>
-
-<div id="container" class="chart"></div>
-
 <script>
-    let jsonStr = '{{ JSON_OHLC_DATA }}';
-    let dataOHLC = JSON.parse(jsonStr);
-    let jsonOpenTrades = '{{ JSON_TRADES_OPEN }}';
-    let openTradesData = JSON.parse(jsonOpenTrades);
-    let jsonClosedTrades = '{{ JSON_TRADES_CLOSED }}';
-    let closedTradesData = JSON.parse(jsonClosedTrades);
-
-    let options = {
-        plotOptions: {
-            candlestick: {},
-        },
-        // rangeSelector: {
-        //     buttons: [
-        //         {
-        //             type: 'minute',
-        //             count: 15,
-        //             text: 'M1'
-        //         },
-        //     ],
-        //     selected: 1,
-        //     inputEnabled: false
-        // },
-        series: [
-            {
-                type: 'candlestick',
-                id: 'graph',
-                name: '{{ TITLE }}',
-                data: dataOHLC,
-                turboThreshold: 0,
-                color: '#c43a2d',
-                upColor: '#2eb832',
-                dataGrouping: {
-                    // groupPixelWidth: 1,
-                    // forced: true,
-                    // units: [
-                    //     ['minute', [1, 2]]
-                    // ]
-                }
+    function createHighcharts(title, containerId, dataOHLC, openTradesData, closedTradesData) {
+        let options = {
+            plotOptions: {
+                candlestick: {},
             },
-            {
-                type: 'flags',
-                onSeries: 'graph',
-                shape: 'circlepin',
-                stackDistance: 30,
-                fillColor: '#e2cc0b',
-                y: -60,
-                states: {
-                    inactive: {
+            series: [
+                {
+                    type: 'candlestick',
+                    id: containerId + '_graph',
+                    name: title,
+                    data: dataOHLC,
+                    turboThreshold: 0,
+                    color: '#c43a2d',
+                    upColor: '#2eb832',
+                },
+                {
+                    type: 'flags',
+                    onSeries: containerId + '_graph',
+                    shape: 'circlepin',
+                    stackDistance: 30,
+                    fillColor: '#e2cc0b',
+                    y: -60,
+                    states: {
+                        inactive: {
+                            enabled: false
+                        }
+                    },
+                    data: openTradesData,
+                },
+
+                {
+                    type: 'flags',
+                    onSeries: containerId + '_graph',
+                    shape: 'squarepin',
+                    stackDistance: 30,
+                    fillColor: '#13a690',
+                    y: -90,
+                    states: {
+                        inactive: {
+                            enabled: false
+                        }
+                    },
+                    data: closedTradesData,
+                },
+            ],
+            yAxis: [
+                {
+                    labels: {
+                        align: 'left'
+                    },
+                    height: '100%',
+                    resize: {
                         enabled: false
                     }
                 },
-                data: openTradesData,
-            },
-
-            {
-                type: 'flags',
-                onSeries: 'graph',
-                shape: 'squarepin',
-                stackDistance: 30,
-                fillColor: '#13a690',
-                y: -90,
-                states: {
-                    inactive: {
-                        enabled: false
-                    }
-                },
-                data: closedTradesData,
-            },
-            // {
-            //     type: 'candlestick',
-            //     id: 'aapl-volume',
-            //     name: 'AAPL Volume',
-            //     data: volume,
-            //     yAxis: 1
-            // },
-        ],
-        yAxis: [
-            {
-                labels: {
-                    align: 'left'
-                },
-                height: '80%',
-                resize: {
-                    enabled: false
-                }
-            },
-            // {
-            //     labels: {
-            //         align: 'left'
-            //     },
-            //     top: '80%',
-            //     height: '20%',
-            //     offset: 0
-            // }
-        ],
-        // responsive: {
-        //     rules: [{
-        //         condition: {
-        //             maxWidth: 800
-        //         },
-        //         chartOptions: {
-        //             rangeSelector: {
-        //                 inputEnabled: false
-        //             }
-        //         }
-        //     }]
-        // }
-    };
-    Highcharts.stockChart('container', options);
-
-    // tooltip: {
-    //             shape: 'square',
-    //             headerShape: 'callout',
-    //             borderWidth: 0,
-    //             shadow: false,
-    //             positioner: function (width, height, point) {
-    //                 var chart = this.chart,
-    //                     position;
-    //
-    //                 if (point.isHeader) {
-    //                     position = {
-    //                         x: Math.max(
-    // Left
-    // side
-    // limit
-    // chart.plotLeft,
-    // Math.min(
-    //     point.plotX + chart.plotLeft - width / 2,
-    // Right
-    // side
-    // limit
-    // chart.chartWidth - width - chart.marginRight
-    // )
-    // ),
-    // y: point.plotY
-    // };
-    // } else {
-    //     position = {
-    //         x: point.series.chart.plotLeft,
-    //         y: point.series.yAxis.top - chart.plotTop
-    //     };
-    // }
-    //
-    // return position;
-    // }
-    // },
-
-    // responsive: {
-    //     rules: [{
-    //         condition: {
-    //             maxWidth: 800
-    //         },
-    //         chartOptions: {
-    //             rangeSelector: {
-    //                 inputEnabled: false
-    //             }
-    //         }
-    //     }]
-    // }
+            ],
+        };
+        Highcharts.stockChart(containerId, options);
+    }
 </script>
+
+{{ range $k, $v := .GraphData }}
+    <div id="container{{ $k }}" class="chart container"></div>
+    <script>
+        createHighcharts({{ $v.Title}}, 'container{{ $k }}', {{ $v.CandlesJson }}, {{ $v.OpenTradesJson }}, {{ $v.ClosedTradesJson }})
+    </script>
+{{end}}
+
 </body>
 </html>

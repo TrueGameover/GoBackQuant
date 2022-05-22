@@ -33,16 +33,15 @@ func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 }
 
 func (strategy *TemaAndRStrategy) IsOpenPosition(currentGraph *graph.Graph) bool {
-	rand.Seed(time.Now().Unix())
-	return rand.Intn(10)%2 == 0
+	return rand.Intn(100)%(rand.Intn(10)+1) == 0
 }
 
-func (strategy *TemaAndRStrategy) GetStopLoss(price decimal.Decimal, currentGraph *graph.Graph) decimal.Decimal {
-	return price.Sub(decimal.NewFromFloat(15))
+func (strategy *TemaAndRStrategy) GetStopLoss(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal {
+	return tick.Close.Sub(decimal.NewFromFloat(15))
 }
 
-func (strategy *TemaAndRStrategy) GetTakeProfit(price decimal.Decimal, currentGraph *graph.Graph) decimal.Decimal {
-	return price.Add(decimal.NewFromFloat(30))
+func (strategy *TemaAndRStrategy) GetTakeProfit(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal {
+	return tick.Close.Add(decimal.NewFromFloat(30))
 }
 
 func (strategy *TemaAndRStrategy) GetPositionType(currentGraph *graph.Graph) trade.PositionType {
@@ -54,11 +53,11 @@ func (strategy *TemaAndRStrategy) GetLotSize(currentGraph *graph.Graph) decimal.
 }
 
 func (strategy *TemaAndRStrategy) GetSinglePipPrice(currentGraph *graph.Graph) decimal.Decimal {
-	return decimal.NewFromFloat(7)
+	return decimal.NewFromFloat(1)
 }
 
 func (strategy *TemaAndRStrategy) GetSingleLotPrice(currentGraph *graph.Graph) decimal.Decimal {
-	return decimal.NewFromFloat(3000)
+	return decimal.NewFromFloat(100)
 }
 
 func (strategy *TemaAndRStrategy) GetSinglePipValue(currentGraph *graph.Graph) decimal.Decimal {
@@ -67,4 +66,8 @@ func (strategy *TemaAndRStrategy) GetSinglePipValue(currentGraph *graph.Graph) d
 
 func (strategy *TemaAndRStrategy) GetPositionsLimit(currentGraph *graph.Graph) uint {
 	return 1
+}
+
+func (strategy TemaAndRStrategy) BeforeStart() {
+	rand.Seed(time.Now().UnixMilli())
 }

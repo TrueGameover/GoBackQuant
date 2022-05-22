@@ -7,10 +7,8 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/history"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
-	"github.com/thoas/go-funk"
 	template "html/template"
 	"os"
-	"strings"
 )
 
 type GraphReport struct {
@@ -30,42 +28,51 @@ type highchartsTrade struct {
 	Text  string `json:"text"`
 }
 
-func (saver *GraphReport) GenerateReport(tradeHistories []*history.TradeHistory, rawTemplate string, path string, title string) error {
-	reportTemplate, err := template.New("report").Parse(rawTemplate)
+func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, title string, tradeHistories []*history.TradeHistory) error {
+	reportTemplate, err := template.New("report").Parse(goHtmlTemplate)
 	if err != nil {
 		return err
 	}
 
-	data := struct {
+	type graphData struct {
+		CandlesJson      template.JS
+		OpenTradesJson   template.JS
+		ClosedTradesJson template.JS
 		Title            string
-		CandlesJson      string
-		OpenTrandesJson  string
-		ClosedTradesJson string
-		GraphCount       int
+	}
+
+	data := struct {
+		Title     string
+		GraphData []graphData
 	}{
 		Title: title,
 	}
 
-	candlesJson, err := saver.prepareCandles(graph.GetBars())
-	if err != nil {
-		return err
+	for _, tradeHistory := range tradeHistories {
+		g := tradeHistory.Graph
+
+		candlesJson, err := saver.prepareCandles(g.GetBars())
+		if err != nil {
+			return err
+		}
+
+		openTradesJson, err := saver.prepareOpenPositions(tradeHistory.GetDeals())
+		if err != nil {
+			return err
+		}
+
+		closedTradesJson, err := saver.prepareClosedPositions(tradeHistory.GetDeals())
+		if err != nil {
+			return err
+		}
+
+		data.GraphData = append(data.GraphData, graphData{
+			CandlesJson:      template.JS(candlesJson),
+			OpenTradesJson:   template.JS(openTradesJson),
+			ClosedTradesJson: template.JS(closedTradesJson),
+			Title:            tradeHistory.Graph.Title,
+		})
 	}
-
-	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_OHLC_DATA }}", candlesJson)
-
-	openTradesJson, err := saver.prepareOpenPositions(saver.deals)
-	if err != nil {
-		return err
-	}
-
-	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_TRADES_OPEN }}", openTradesJson)
-
-	closedTradesJson, err := saver.prepareClosedPositions(saver.deals)
-	if err != nil {
-		return err
-	}
-
-	reportHtml = strings.ReplaceAll(reportHtml, "{{ JSON_TRADES_CLOSED }}", closedTradesJson)
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -79,7 +86,7 @@ func (saver *GraphReport) GenerateReport(tradeHistories []*history.TradeHistory,
 	}()
 
 	writer := bufio.NewWriter(file)
-	_, err = writer.WriteString(reportHtml)
+	err = reportTemplate.Execute(writer, data)
 	if err != nil {
 		return err
 	}
@@ -193,7 +200,7 @@ func (saver *GraphReport) convertCloseTrade(trade2 *history.Trade) *highchartsTr
 	return &t
 }
 
-func (saver *GraphReport) findOpenDeal(bar *graph.Bar) *history.Trade {
+/*func (saver *GraphReport) findOpenDeal(bar *graph.Bar) *history.Trade {
 	for _, deal := range saver.deals {
 		if deal.Position.Open.Id == bar.Id {
 			return deal
@@ -227,4 +234,4 @@ func (saver *TradeHistory) GetLossDealsCount() int {
 	}).([]*Trade)
 
 	return len(trades)
-}
+}*/

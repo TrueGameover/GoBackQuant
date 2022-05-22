@@ -43,3 +43,7 @@ func (saver *TradeHistory) saveToHistory(position *trade.Position) {
 func (saver *TradeHistory) GetDealsCount() int {
 	return len(saver.deals)
 }
+
+func (saver *TradeHistory) GetDeals() []*Trade {
+	return saver.deals
+}

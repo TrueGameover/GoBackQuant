@@ -7,14 +7,15 @@ import (
 )
 
 type Strategy interface {
+	BeforeStart()
 	BeforeTick(graphs []*graph.Graph)
 	Tick(tick *graph.Tick, currentGraph *graph.Graph)
 	AfterTick(graph []*graph.Graph)
 	GetTradeFee(currentGraph *graph.Graph) decimal.Decimal
 	ShouldContinue() bool
 	IsOpenPosition(currentGraph *graph.Graph) bool
-	GetStopLoss(price decimal.Decimal, currentGraph *graph.Graph) decimal.Decimal
-	GetTakeProfit(price decimal.Decimal, currentGraph *graph.Graph) decimal.Decimal
+	GetStopLoss(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal
+	GetTakeProfit(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal
 	GetPositionType(currentGraph *graph.Graph) trade.PositionType
 	GetLotSize(currentGraph *graph.Graph) decimal.Decimal
 	GetSinglePipPrice(currentGraph *graph.Graph) decimal.Decimal
