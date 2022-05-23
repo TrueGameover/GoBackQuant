@@ -9,6 +9,7 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	"github.com/shopspring/decimal"
 	template "html/template"
+	"math"
 	"os"
 )
 
@@ -56,6 +57,7 @@ func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, tit
 		ProfitPercentAmount    string
 		FinalBalance           string
 		Prom                   string
+		PromWithoutWinStreak   string
 	}{
 		Title:                  title,
 		DealsProfitPercent:     saver.GetProfitDealsPercent(tradeHistories).StringFixed(2),
@@ -66,7 +68,8 @@ func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, tit
 		MaxBalance:             saver.findMaxBalance(tradeHistories).StringFixed(2),
 		MinBalance:             saver.findMinBalance(tradeHistories).StringFixed(2),
 		FinalBalance:           finalBalance.StringFixed(2),
-		Prom:                   saver.CalculatePROM(tradeHistories).StringFixed(2),
+		Prom:                   saver.CalculatePROMPercent(tradeHistories, initialBalance).StringFixed(2),
+		PromWithoutWinStreak:   saver.CalculatePROMPercentWithoutWinStreak(tradeHistories, initialBalance).StringFixed(2),
 		ProfitAmount:           finalBalance.Sub(initialBalance).StringFixed(2),
 		ProfitPercentAmount:    finalBalance.Sub(initialBalance).Div(initialBalance).Mul(decimal.NewFromInt(100)).StringFixed(2),
 	}
@@ -237,6 +240,36 @@ func (saver *GraphReport) GetProfitDealsCount(tradeHistories []*history.TradeHis
 	return count
 }
 
+func (saver *GraphReport) GetAverageProfit(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	profit := decimal.NewFromInt(0)
+	two := decimal.NewFromInt(2)
+
+	for _, tradeHistory := range tradeHistories {
+		for _, deal := range tradeHistory.GetDeals() {
+			if deal.Success {
+				profit = profit.Add(deal.BalanceDiff).Div(two)
+			}
+		}
+	}
+
+	return profit
+}
+
+func (saver *GraphReport) GetAverageLoss(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	profit := decimal.NewFromInt(0)
+	two := decimal.NewFromInt(2)
+
+	for _, tradeHistory := range tradeHistories {
+		for _, deal := range tradeHistory.GetDeals() {
+			if !deal.Success {
+				profit = profit.Add(deal.BalanceDiff).Div(two)
+			}
+		}
+	}
+
+	return profit
+}
+
 func (saver *GraphReport) GetProfitDealsPercent(tradeHistories []*history.TradeHistory) decimal.Decimal {
 	total := decimal.NewFromInt(saver.GetDealsCount(tradeHistories))
 	profit := decimal.NewFromInt(saver.GetProfitDealsCount(tradeHistories))
@@ -363,7 +396,61 @@ func (saver *GraphReport) GetMaxPercentBalanceDrop(tradeHistories []*history.Tra
 	return maxDiff.Div(max).Mul(decimal.NewFromInt(100))
 }
 
-func (saver *GraphReport) CalculatePROM(tradeHistories []*history.TradeHistory) decimal.Decimal {
-	//TODO
-	return decimal.Decimal{}
+func (saver *GraphReport) calculateCorrectedProfit(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	profitTradesCount := saver.GetProfitDealsCount(tradeHistories)
+	averageProfit := saver.GetAverageProfit(tradeHistories)
+	correctedProfitTradesCount := float64(profitTradesCount) - math.Sqrt(float64(profitTradesCount))
+
+	return averageProfit.Mul(decimal.NewFromFloat(correctedProfitTradesCount))
+}
+
+func (saver *GraphReport) calculateCorrectedLoss(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	lossTradesCount := saver.GetLossDealsCount(tradeHistories)
+	averageLoss := saver.GetAverageLoss(tradeHistories)
+	correctedLossTradesCount := float64(lossTradesCount) - math.Sqrt(float64(lossTradesCount))
+
+	return averageLoss.Abs().Mul(decimal.NewFromFloat(correctedLossTradesCount))
+}
+
+func (saver GraphReport) GetMaxStreakProfit(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	maxStreakCount := 0
+	maxStreakProfit := decimal.NewFromInt(0)
+	streakCount := 0
+	streakProfit := decimal.NewFromInt(0)
+
+	for _, tradeHistory := range tradeHistories {
+		for _, deal := range tradeHistory.GetDeals() {
+			if deal.Success {
+				streakCount++
+				streakProfit = streakProfit.Add(deal.BalanceDiff)
+
+				if streakCount > maxStreakCount {
+					maxStreakCount = streakCount
+					maxStreakProfit = streakProfit
+				}
+
+			} else {
+				streakCount = 0
+				streakProfit = decimal.NewFromInt(0)
+			}
+		}
+	}
+
+	return maxStreakProfit
+}
+
+func (saver *GraphReport) CalculatePROMPercent(tradeHistories []*history.TradeHistory, initialBalance decimal.Decimal) decimal.Decimal {
+	correctedProfit := saver.calculateCorrectedProfit(tradeHistories)
+	correctedLoss := saver.calculateCorrectedLoss(tradeHistories)
+
+	return correctedProfit.Sub(correctedLoss).Div(initialBalance).Mul(decimal.NewFromInt(100))
+}
+
+func (saver GraphReport) CalculatePROMPercentWithoutWinStreak(tradeHistories []*history.TradeHistory, initialBalance decimal.Decimal) decimal.Decimal {
+	correctedProfit := saver.calculateCorrectedProfit(tradeHistories)
+	correctedLoss := saver.calculateCorrectedLoss(tradeHistories)
+
+	correctedProfit = correctedProfit.Sub(saver.GetMaxStreakProfit(tradeHistories))
+
+	return correctedProfit.Sub(correctedLoss).Div(initialBalance).Mul(decimal.NewFromInt(100))
 }

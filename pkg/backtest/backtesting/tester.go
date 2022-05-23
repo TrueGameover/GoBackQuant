@@ -71,14 +71,14 @@ func (tester *StrategyTester) Run(s *Strategy) error {
 			if len(closedPositions) > 0 {
 				for _, closedPosition := range closedPositions {
 					usedMoney := strategy.GetSingleLotPrice(g).Mul(strategy.GetLotSize(g))
+					balanceDiff := strategy.GetSinglePipPrice(g).Mul(closedPosition.GetPipsAfterClose()).Div(strategy.GetSinglePipValue(g))
 
 					if tester.balanceManager.FreeMoney(usedMoney) {
-						balanceDiff := strategy.GetSinglePipPrice(g).Mul(closedPosition.GetPipsAfterClose()).Div(strategy.GetSinglePipValue(g))
 						tester.balanceManager.AddDiff(balanceDiff)
 					}
-				}
 
-				historySaver.AddToHistory(closedPositions, tester.balanceManager.GetTotalBalance(), tester.balanceManager.GetFree())
+					historySaver.SaveToHistory(closedPosition, tester.balanceManager.GetTotalBalance(), tester.balanceManager.GetFree(), balanceDiff)
+				}
 			}
 
 			strategy.Tick(nextTick, g)

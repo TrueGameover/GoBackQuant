@@ -200,7 +200,7 @@
             Стандартная ошибка:
         </div>
         <div class="col-6">
-            {{ .StandardErrorPercent }} %
+            {{ .StandardErrorPercent }}%
         </div>
     </div>
     <div class="row">
@@ -208,7 +208,16 @@
             PROM (The pessimistic return on margin):
         </div>
         <div class="col-6">
-            {{ .StandardErrorPercent }} %
+            {{ .Prom }}%
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            PROM without win streak:
+        </div>
+        <div class="col-6">
+            {{ .PromWithoutWinStreak }}%
         </div>
     </div>
 </div>

@@ -14,6 +14,7 @@ type Trade struct {
 	Position     *trade.Position
 	TotalBalance decimal.Decimal
 	FreeBalance  decimal.Decimal
+	BalanceDiff  decimal.Decimal
 }
 
 type TradeHistory struct {
@@ -22,13 +23,7 @@ type TradeHistory struct {
 	deals   []*Trade
 }
 
-func (saver *TradeHistory) AddToHistory(positions []*trade.Position, total decimal.Decimal, free decimal.Decimal) {
-	for _, position := range positions {
-		saver.saveToHistory(position, total, free)
-	}
-}
-
-func (saver *TradeHistory) saveToHistory(position *trade.Position, total decimal.Decimal, free decimal.Decimal) {
+func (saver *TradeHistory) SaveToHistory(position *trade.Position, total decimal.Decimal, free decimal.Decimal, balanceDiff decimal.Decimal) {
 	diff := position.GetPipsAfterClose()
 
 	t := Trade{
@@ -38,6 +33,7 @@ func (saver *TradeHistory) saveToHistory(position *trade.Position, total decimal
 		Position:     position,
 		TotalBalance: total,
 		FreeBalance:  free,
+		BalanceDiff:  balanceDiff,
 	}
 
 	saver.counter++
