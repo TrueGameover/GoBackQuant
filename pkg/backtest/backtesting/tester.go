@@ -78,7 +78,7 @@ func (tester *StrategyTester) Run(s *Strategy) error {
 					}
 				}
 
-				historySaver.AddToHistory(closedPositions)
+				historySaver.AddToHistory(closedPositions, tester.balanceManager.GetTotalBalance(), tester.balanceManager.GetFree())
 			}
 
 			strategy.Tick(nextTick, g)

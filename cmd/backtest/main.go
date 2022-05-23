@@ -41,13 +41,13 @@ func main() {
 	//total := historySavers.GetDealsCount()
 	//profitDealsCount := historySavers.GetProfitDealsCount()
 
-	err = graphReport.GenerateReport(reportTemplate, "report.html", "Tradebot", historySavers)
+	err = graphReport.GenerateReport(reportTemplate, "report.html", "Tradebot", historySavers, balanceManager.GetInitialBalance(), balanceManager.GetTotalBalance())
 	if err != nil {
 		panic(err)
 	}
 
 	/*if total > 0 {
-		fmt.Printf("Финальный баланс: %s\n", balanceManager.GetBalance().String())
+		fmt.Printf("Финальный баланс: %s\n", balanceManager.GetTotalBalance().String())
 		fmt.Printf("Всего сделок: %d\n", total)
 		fmt.Printf("Успешных сделок: %d\n", historySavers.GetProfitDealsCount())
 		fmt.Printf("Убыточных сделок: %d\n", historySavers.GetLossDealsCount())

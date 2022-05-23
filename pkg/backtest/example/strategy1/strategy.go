@@ -33,7 +33,7 @@ func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 }
 
 func (strategy *TemaAndRStrategy) IsOpenPosition(currentGraph *graph.Graph) bool {
-	return rand.Intn(100)%(rand.Intn(10)+1) == 0
+	return rand.Intn(10)%2 == 0
 }
 
 func (strategy *TemaAndRStrategy) GetStopLoss(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal {

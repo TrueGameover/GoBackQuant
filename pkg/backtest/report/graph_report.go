@@ -7,6 +7,7 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/history"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	"github.com/shopspring/decimal"
 	template "html/template"
 	"os"
 )
@@ -28,7 +29,7 @@ type highchartsTrade struct {
 	Text  string `json:"text"`
 }
 
-func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, title string, tradeHistories []*history.TradeHistory) error {
+func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, title string, tradeHistories []*history.TradeHistory, initialBalance decimal.Decimal, finalBalance decimal.Decimal) error {
 	reportTemplate, err := template.New("report").Parse(goHtmlTemplate)
 	if err != nil {
 		return err
@@ -42,10 +43,32 @@ func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, tit
 	}
 
 	data := struct {
-		Title     string
-		GraphData []graphData
+		Title                  string
+		GraphData              []graphData
+		DealsProfitPercent     string
+		StandardErrorPercent   string
+		MaxBalanceDropPercent  string
+		MaxAbsoluteBalanceDrop string
+		InitialBalance         string
+		MaxBalance             string
+		MinBalance             string
+		ProfitAmount           string
+		ProfitPercentAmount    string
+		FinalBalance           string
+		Prom                   string
 	}{
-		Title: title,
+		Title:                  title,
+		DealsProfitPercent:     saver.GetProfitDealsPercent(tradeHistories).StringFixed(2),
+		StandardErrorPercent:   saver.GetStandardError(tradeHistories).StringFixed(2),
+		MaxBalanceDropPercent:  saver.GetMaxPercentBalanceDrop(tradeHistories).StringFixed(2),
+		MaxAbsoluteBalanceDrop: saver.GetMaxAbsoluteBalanceDrop(tradeHistories).StringFixed(2),
+		InitialBalance:         initialBalance.StringFixed(2),
+		MaxBalance:             saver.findMaxBalance(tradeHistories).StringFixed(2),
+		MinBalance:             saver.findMinBalance(tradeHistories).StringFixed(2),
+		FinalBalance:           finalBalance.StringFixed(2),
+		Prom:                   saver.CalculatePROM(tradeHistories).StringFixed(2),
+		ProfitAmount:           finalBalance.Sub(initialBalance).StringFixed(2),
+		ProfitPercentAmount:    finalBalance.Sub(initialBalance).Div(initialBalance).Mul(decimal.NewFromInt(100)).StringFixed(2),
 	}
 
 	for _, tradeHistory := range tradeHistories {
@@ -190,7 +213,7 @@ func (saver *GraphReport) convertCloseTrade(trade2 *history.Trade) *highchartsTr
 
 	if trade2.Position.PositionType == trade.TypeLong {
 		t.Title = "Long closed"
-		t.Text = fmt.Sprintf("Position #%d<br>Profit: %s", trade2.Position.Id, trade2.MoneyDiff.String())
+		t.Text = fmt.Sprintf("Position #%d<br>Pips: %s", trade2.Position.Id, trade2.PipsDiff.String())
 
 	} else {
 		t.Title = "Short closed"
@@ -200,38 +223,147 @@ func (saver *GraphReport) convertCloseTrade(trade2 *history.Trade) *highchartsTr
 	return &t
 }
 
-/*func (saver *GraphReport) findOpenDeal(bar *graph.Bar) *history.Trade {
-	for _, deal := range saver.deals {
-		if deal.Position.Open.Id == bar.Id {
-			return deal
+func (saver *GraphReport) GetProfitDealsCount(tradeHistories []*history.TradeHistory) int64 {
+	count := int64(0)
+
+	for _, tradeHistory := range tradeHistories {
+		for _, deal := range tradeHistory.GetDeals() {
+			if deal.Success {
+				count++
+			}
 		}
 	}
 
-	return nil
+	return count
 }
 
-func (saver *GraphReport) findCloseDeal(bar *graph.Bar) *history.Trade {
-	for _, deal := range saver.deals {
-		if deal.Position.Closed.Id == bar.Id {
-			return deal
+func (saver *GraphReport) GetProfitDealsPercent(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	total := decimal.NewFromInt(saver.GetDealsCount(tradeHistories))
+	profit := decimal.NewFromInt(saver.GetProfitDealsCount(tradeHistories))
+
+	return profit.Div(total).Mul(decimal.NewFromInt(100))
+}
+
+func (saver *GraphReport) GetLossDealsCount(tradeHistories []*history.TradeHistory) int64 {
+	count := int64(0)
+
+	for _, tradeHistory := range tradeHistories {
+		for _, deal := range tradeHistory.GetDeals() {
+			if !deal.Success {
+				count++
+			}
 		}
 	}
 
-	return nil
+	return count
 }
 
-func (saver *TradeHistory) GetProfitDealsCount() int {
-	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
-		return trade.Success
-	}).([]*Trade)
+func (saver *GraphReport) GetDealsCount(tradeHistories []*history.TradeHistory) int64 {
+	count := int64(0)
 
-	return len(trades)
+	for _, tradeHistory := range tradeHistories {
+		count += tradeHistory.GetDealsCount()
+	}
+
+	return count
 }
 
-func (saver *TradeHistory) GetLossDealsCount() int {
-	trades := funk.Filter(saver.deals, func(trade *Trade) bool {
-		return !trade.Success
-	}).([]*Trade)
+// GetStandardError
+// стандартная статистическая ошибка
+func (saver *GraphReport) GetStandardError(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	one := decimal.New(1, 0)
+	count := decimal.NewFromInt(saver.GetDealsCount(tradeHistories))
 
-	return len(trades)
-}*/
+	return one.Div(count.Add(one))
+}
+
+func (saver *GraphReport) findMaxBalance(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	max := decimal.NewFromInt(0)
+	for _, tradeHistory := range tradeHistories {
+		deals := tradeHistory.GetDeals()
+
+		for _, deal := range deals {
+			if deal.TotalBalance.GreaterThan(max) {
+				max = deal.TotalBalance
+			}
+		}
+	}
+
+	return max
+}
+
+func (saver *GraphReport) findMinBalance(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	min := decimal.NewFromInt(0)
+	for _, tradeHistory := range tradeHistories {
+		deals := tradeHistory.GetDeals()
+
+		for _, deal := range deals {
+			if min.Equals(decimal.Zero) {
+				min = deal.TotalBalance
+			}
+
+			if deal.TotalBalance.LessThan(min) {
+				min = deal.TotalBalance
+			}
+		}
+	}
+
+	return min
+}
+
+func (saver *GraphReport) findMaxAbsoluteBalanceDrop(tradeHistory *history.TradeHistory) (maxDiff decimal.Decimal, max decimal.Decimal) {
+	deals := tradeHistory.GetDeals()
+	max = decimal.NewFromInt(0)
+	maxDiff = decimal.NewFromInt(0)
+
+	for _, deal := range deals {
+		if deal.TotalBalance.GreaterThan(max) {
+			max = deal.TotalBalance
+		}
+
+		if deal.TotalBalance.LessThan(max) {
+			diff := max.Sub(deal.TotalBalance)
+
+			if diff.GreaterThan(maxDiff) {
+				maxDiff = diff
+			}
+		}
+	}
+
+	return
+}
+
+func (saver *GraphReport) GetMaxAbsoluteBalanceDrop(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	max := decimal.NewFromInt(0)
+
+	for _, tradeHistory := range tradeHistories {
+		diff, _ := saver.findMaxAbsoluteBalanceDrop(tradeHistory)
+
+		if diff.GreaterThan(max) {
+			max = diff
+		}
+	}
+
+	return max
+}
+
+func (saver *GraphReport) GetMaxPercentBalanceDrop(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	maxDiff := decimal.NewFromInt(0)
+	max := decimal.NewFromInt(0)
+
+	for _, tradeHistory := range tradeHistories {
+		diff, m := saver.findMaxAbsoluteBalanceDrop(tradeHistory)
+
+		if diff.GreaterThan(maxDiff) {
+			maxDiff = diff
+			max = m
+		}
+	}
+
+	return maxDiff.Div(max).Mul(decimal.NewFromInt(100))
+}
+
+func (saver *GraphReport) CalculatePROM(tradeHistories []*history.TradeHistory) decimal.Decimal {
+	//TODO
+	return decimal.Decimal{}
+}

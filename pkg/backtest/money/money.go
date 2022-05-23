@@ -47,14 +47,23 @@ func (manager *BalanceManager) SetInitialBalance(amount decimal.Decimal) {
 	manager.initialBalance = amount
 }
 
-func (manager *BalanceManager) Reset() {
-	manager.free = manager.initialBalance
+func (manager *BalanceManager) GetInitialBalance() decimal.Decimal {
+	return manager.initialBalance
 }
 
-func (manager *BalanceManager) GetBalance() decimal.Decimal {
-	return manager.free
+func (manager *BalanceManager) Reset() {
+	manager.free = manager.initialBalance
+	manager.hold = decimal.NewFromInt(0)
+}
+
+func (manager *BalanceManager) GetTotalBalance() decimal.Decimal {
+	return manager.total
 }
 
 func (manager *BalanceManager) AddDiff(diff decimal.Decimal) {
 	manager.free = manager.free.Add(diff)
+}
+
+func (manager *BalanceManager) GetFree() decimal.Decimal {
+	return manager.free
 }

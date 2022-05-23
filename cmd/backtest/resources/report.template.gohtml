@@ -1,5 +1,6 @@
 <html lang="ru">
 <head>
+    <meta charset="UTF-8">
     <title>Report</title>
     <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/stocktools/gui.css">
     <link rel="stylesheet" type="text/css" href="https://code.highcharts.com/css/annotations/popup.css">
@@ -20,10 +21,25 @@
     <script src="https://code.highcharts.com/stock/modules/hollowcandlestick.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+            crossorigin="anonymous"></script>
+
     <style>
-        .container {
+        .graph {
             /*max-height: 700px;*/
             min-height: 600px;
+        }
+
+        .information {
+            margin-top: 4em;
+            margin-bottom: 4em;
+        }
+
+        .information > .row {
+            margin-bottom: 1em;
         }
     </style>
 </head>
@@ -90,12 +106,112 @@
     }
 </script>
 
-{{ range $k, $v := .GraphData }}
-    <div id="container{{ $k }}" class="chart container"></div>
-    <script>
-        createHighcharts({{ $v.Title}}, 'container{{ $k }}', {{ $v.CandlesJson }}, {{ $v.OpenTradesJson }}, {{ $v.ClosedTradesJson }})
-    </script>
-{{end}}
+<div class="row">
+    {{ range $k, $v := .GraphData }}
+        <div id="container{{ $k }}" class="chart graph"></div>
+        <script>
+            createHighcharts({{ $v.Title}}, 'container{{ $k }}', {{ $v.CandlesJson }}, {{ $v.OpenTradesJson }}, {{ $v.ClosedTradesJson }})
+        </script>
+    {{end}}
+</div>
+
+<div class="container information">
+    <div class="row">
+        <div class="col-6">
+            Процент успешных сделок:
+        </div>
+        <div class="col-6">
+            {{ .DealsProfitPercent }} %
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Исходный баланс:
+        </div>
+        <div class="col-6">
+            {{ .InitialBalance }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Финальный баланс:
+        </div>
+        <div class="col-6">
+            {{ .FinalBalance }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            Абсолютная прибыль:
+        </div>
+        <div class="col-6">
+            {{ .ProfitAmount }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Прибыль:
+        </div>
+        <div class="col-6">
+            {{ .ProfitPercentAmount }}%
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Максимальный баланс:
+        </div>
+        <div class="col-6">
+            {{ .MaxBalance }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Минимальный баланс:
+        </div>
+        <div class="col-6">
+            {{ .MinBalance }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Максимальная просадка:
+        </div>
+        <div class="col-6">
+            -{{ .MaxBalanceDropPercent }} %
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            Абсолютная максимальная просадка:
+        </div>
+        <div class="col-6">
+            -{{ .MaxAbsoluteBalanceDrop }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            Стандартная ошибка:
+        </div>
+        <div class="col-6">
+            {{ .StandardErrorPercent }} %
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            PROM (The pessimistic return on margin):
+        </div>
+        <div class="col-6">
+            {{ .StandardErrorPercent }} %
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
