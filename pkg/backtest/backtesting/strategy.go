@@ -22,4 +22,5 @@ type Strategy interface {
 	GetSingleLotPrice(currentGraph *graph.Graph) decimal.Decimal
 	GetSinglePipValue(currentGraph *graph.Graph) decimal.Decimal
 	GetPositionsLimit(currentGraph *graph.Graph) uint
+	ParametersUpdated(parameters map[string]int)
 }

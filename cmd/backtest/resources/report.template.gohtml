@@ -121,7 +121,7 @@
             Процент успешных сделок:
         </div>
         <div class="col-6">
-            {{ .DealsProfitPercent }} %
+            {{ .Metrics.DealsProfitPercent }} %
         </div>
     </div>
 
@@ -130,7 +130,7 @@
             Исходный баланс:
         </div>
         <div class="col-6">
-            {{ .InitialBalance }}
+            {{ .Metrics.InitialBalance }}
         </div>
     </div>
 
@@ -139,7 +139,7 @@
             Финальный баланс:
         </div>
         <div class="col-6">
-            {{ .FinalBalance }}
+            {{ .Metrics.FinalBalance }}
         </div>
     </div>
     <div class="row">
@@ -147,7 +147,7 @@
             Абсолютная прибыль:
         </div>
         <div class="col-6">
-            {{ .ProfitAmount }}
+            {{ .Metrics.ProfitAmount }}
         </div>
     </div>
 
@@ -156,7 +156,7 @@
             Прибыль:
         </div>
         <div class="col-6">
-            {{ .ProfitPercentAmount }}%
+            {{ .Metrics.ProfitPercentAmount }}%
         </div>
     </div>
 
@@ -165,7 +165,7 @@
             Максимальный баланс:
         </div>
         <div class="col-6">
-            {{ .MaxBalance }}
+            {{ .Metrics.MaxBalance }}
         </div>
     </div>
 
@@ -174,7 +174,7 @@
             Минимальный баланс:
         </div>
         <div class="col-6">
-            {{ .MinBalance }}
+            {{ .Metrics.MinBalance }}
         </div>
     </div>
 
@@ -183,7 +183,7 @@
             Максимальная просадка:
         </div>
         <div class="col-6">
-            -{{ .MaxBalanceDropPercent }} %
+            -{{ .Metrics.MaxBalanceDropPercent }} %
         </div>
     </div>
 
@@ -192,7 +192,7 @@
             Абсолютная максимальная просадка:
         </div>
         <div class="col-6">
-            -{{ .MaxAbsoluteBalanceDrop }}
+            -{{ .Metrics.MaxAbsoluteBalanceDrop }}
         </div>
     </div>
     <div class="row">
@@ -200,7 +200,7 @@
             Стандартная ошибка:
         </div>
         <div class="col-6">
-            {{ .StandardErrorPercent }}%
+            {{ .Metrics.StandardErrorPercent }}%
         </div>
     </div>
     <div class="row">
@@ -208,7 +208,7 @@
             PROM (The pessimistic return on margin):
         </div>
         <div class="col-6">
-            {{ .Prom }}%
+            {{ .Metrics.Prom }}%
         </div>
     </div>
 
@@ -217,7 +217,7 @@
             PROM without win streak:
         </div>
         <div class="col-6">
-            {{ .PromWithoutWinStreak }}%
+            {{ .Metrics.PromWithoutWinStreak }}%
         </div>
     </div>
 </div>

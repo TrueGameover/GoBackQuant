@@ -71,3 +71,7 @@ func (strategy *TemaAndRStrategy) GetPositionsLimit(currentGraph *graph.Graph) u
 func (strategy TemaAndRStrategy) BeforeStart() {
 	rand.Seed(time.Now().UnixMilli())
 }
+
+func (strategy *TemaAndRStrategy) ParametersUpdated(parameters map[string]int) {
+
+}
