@@ -30,7 +30,7 @@ func main() {
 		},
 	})
 
-	optimizer.Run(strategy, getProviders, fitness, 80, 100, 4)
+	optimizer.Run(strategy, getProviders, fitness, 80, 100, 10000, 4)
 }
 
 func getProviders() []tick.Provider {

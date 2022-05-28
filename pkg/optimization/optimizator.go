@@ -22,6 +22,7 @@ type gogaOptimizer struct {
 	providersFunc    func() []tick.Provider
 	fitnessFunc      func(metrics metrics.TradeMetrics) int
 	fitnessThreshold int
+	initialBalance   int64
 }
 
 func (b *gogaOptimizer) Go() goga.Bitset {
@@ -58,7 +59,7 @@ func (s *gogaOptimizer) Simulate(genome goga.Genome) {
 	}
 
 	balanceManager := money.BalanceManager{}
-	balanceManager.SetInitialBalance(decimal.NewFromInt(10000))
+	balanceManager.SetInitialBalance(decimal.NewFromInt(s.initialBalance))
 	balanceManager.Reset()
 
 	tester := backtesting.StrategyTester{}
@@ -99,13 +100,14 @@ func (e *gogaOptimizer) OnElite(genome goga.Genome) {
 	fmt.Printf("Iteration #%d, fitness = %d\n", e.iterationCount, genome.GetFitness())
 }
 
-func (optimizer *StrategyOptimizer) Run(strategy strategy.Strategy, providersFunc func() []tick.Provider, fitnessFunc func(metrics metrics.TradeMetrics) int, fitnessThreshold int, iterationsLimit uint, parallelSimulations int) []strategy.Parameter {
+func (optimizer *StrategyOptimizer) Run(strategy strategy.Strategy, providersFunc func() []tick.Provider, fitnessFunc func(metrics metrics.TradeMetrics) int, fitnessThreshold int, iterationsLimit uint, initialBalance int64, parallelSimulations int) []strategy.Parameter {
 	gogaOpt := gogaOptimizer{
 		Strategy:         strategy,
 		providersFunc:    providersFunc,
 		fitnessFunc:      fitnessFunc,
 		iterationsLimit:  iterationsLimit,
 		fitnessThreshold: fitnessThreshold,
+		initialBalance:   initialBalance,
 	}
 
 	genAlgo := goga.NewGeneticAlgorithm()
