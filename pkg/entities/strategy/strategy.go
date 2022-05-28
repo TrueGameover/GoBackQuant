@@ -1,4 +1,4 @@
-package backtesting
+package strategy
 
 import (
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
@@ -22,5 +22,6 @@ type Strategy interface {
 	GetSingleLotPrice(currentGraph *graph.Graph) decimal.Decimal
 	GetSinglePipValue(currentGraph *graph.Graph) decimal.Decimal
 	GetPositionsLimit(currentGraph *graph.Graph) uint
-	ParametersUpdated(parameters map[string]int)
+	UpdateParameters(parameters []Parameter)
+	GetParameters() []Parameter
 }

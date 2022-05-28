@@ -5,6 +5,7 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/money"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	strategy2 "github.com/TrueGameover/GoBackQuant/pkg/entities/strategy"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/tick"
 )
 
@@ -35,7 +36,7 @@ func (tester *StrategyTester) Init(balanceManager *money.BalanceManager, tickPro
 	}
 }
 
-func (tester *StrategyTester) Run(s *Strategy) error {
+func (tester *StrategyTester) Run(s *strategy2.Strategy) error {
 	strategy := *s
 
 	var totalMax uint64 = 0

@@ -8,6 +8,7 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/provider"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/report"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	strategy2 "github.com/TrueGameover/GoBackQuant/pkg/entities/strategy"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/tick"
 	"github.com/shopspring/decimal"
 	"time"
@@ -29,7 +30,7 @@ func main() {
 	tester := backtesting.StrategyTester{}
 	tester.Init(&balanceManager, providers)
 
-	var strategy backtesting.Strategy = &strategy1.TemaAndRStrategy{}
+	var strategy strategy2.Strategy = &strategy1.TemaAndRStrategy{}
 
 	err = tester.Run(&strategy)
 	if err != nil {

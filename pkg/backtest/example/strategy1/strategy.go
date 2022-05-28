@@ -1,16 +1,16 @@
 package strategy1
 
 import (
-	"github.com/TrueGameover/GoBackQuant/pkg/backtest/backtesting"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/trade"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/strategy"
 	"github.com/shopspring/decimal"
 	"math/rand"
 	"time"
 )
 
 type TemaAndRStrategy struct {
-	backtesting.Strategy
+	parameters []strategy.Parameter
 }
 
 func (strategy *TemaAndRStrategy) BeforeTick(graphs []*graph.Graph) {
@@ -33,7 +33,14 @@ func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 }
 
 func (strategy *TemaAndRStrategy) IsOpenPosition(currentGraph *graph.Graph) bool {
-	return rand.Intn(10)%2 == 0
+	val := strategy.parameters[0].GetValue()
+	div := strategy.parameters[1].GetValue()
+
+	if div < 1 {
+		div = 1
+	}
+
+	return val%div == 0
 }
 
 func (strategy *TemaAndRStrategy) GetStopLoss(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal {
@@ -68,10 +75,14 @@ func (strategy *TemaAndRStrategy) GetPositionsLimit(currentGraph *graph.Graph) u
 	return 1
 }
 
-func (strategy TemaAndRStrategy) BeforeStart() {
+func (strategy *TemaAndRStrategy) BeforeStart() {
 	rand.Seed(time.Now().UnixMilli())
 }
 
-func (strategy *TemaAndRStrategy) ParametersUpdated(parameters map[string]int) {
+func (strategy *TemaAndRStrategy) UpdateParameters(parameters []strategy.Parameter) {
+	strategy.parameters = parameters
+}
 
+func (strategy *TemaAndRStrategy) GetParameters() []strategy.Parameter {
+	return strategy.parameters
 }
