@@ -34,13 +34,13 @@ func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 
 func (strategy *TemaAndRStrategy) IsOpenPosition(currentGraph *graph.Graph) bool {
 	val := strategy.parameters[0].GetValue()
-	div := strategy.parameters[1].GetValue()
+	//div := strategy.parameters[1].GetValue()
 
-	if div < 1 {
-		div = 1
-	}
+	//if div < 1 {
+	//	div = 1
+	//}
 
-	return val%div == 0
+	return rand.Intn(10)%val == 0
 }
 
 func (strategy *TemaAndRStrategy) GetStopLoss(tick *graph.Tick, currentGraph *graph.Graph) decimal.Decimal {
@@ -52,7 +52,13 @@ func (strategy *TemaAndRStrategy) GetTakeProfit(tick *graph.Tick, currentGraph *
 }
 
 func (strategy *TemaAndRStrategy) GetPositionType(currentGraph *graph.Graph) trade.PositionType {
-	return trade.TypeLong
+	r := rand.Intn(10)
+
+	if r%2 == 0 {
+		return trade.TypeLong
+	} else {
+		return trade.TypeShort
+	}
 }
 
 func (strategy *TemaAndRStrategy) GetLotSize(currentGraph *graph.Graph) decimal.Decimal {
@@ -85,4 +91,8 @@ func (strategy *TemaAndRStrategy) UpdateParameters(parameters []strategy.Paramet
 
 func (strategy *TemaAndRStrategy) GetParameters() []strategy.Parameter {
 	return strategy.parameters
+}
+
+func (strategy *TemaAndRStrategy) GetPositionDayTransferCommission() decimal.Decimal {
+	return decimal.NewFromInt(1)
 }

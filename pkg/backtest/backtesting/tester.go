@@ -7,6 +7,8 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	strategy2 "github.com/TrueGameover/GoBackQuant/pkg/entities/strategy"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/tick"
+	"github.com/shopspring/decimal"
+	"time"
 )
 
 type StrategyTester struct {
@@ -47,6 +49,8 @@ func (tester *StrategyTester) Run(s *strategy2.Strategy) error {
 	}
 
 	strategy.BeforeStart()
+
+	var lastDay *time.Time
 
 	for totalStep := uint64(0); totalStep < totalMax; totalStep++ {
 		for i, tickProvider := range tester.tickProviders {
@@ -105,9 +109,22 @@ func (tester *StrategyTester) Run(s *strategy2.Strategy) error {
 				}
 			}
 
-			nextTick, err = tickProvider.GetNextTick()
-			if err != nil {
-				return err
+			if lastDay == nil {
+				lastDay = &nextTick.Date
+
+			} else {
+				diff := nextTick.Date.Sub(*lastDay)
+
+				if diff.Hours() >= 24 {
+					// next day
+					lastDay = &nextTick.Date
+					shortPositionsCount := positionManager.GetOpenedShortPositionsCount()
+
+					if shortPositionsCount > 0 {
+						commission := strategy.GetPositionDayTransferCommission().Mul(decimal.NewFromInt32(int32(shortPositionsCount)))
+						tester.balanceManager.Commission(commission)
+					}
+				}
 			}
 
 			if !strategy.ShouldContinue() {

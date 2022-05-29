@@ -31,6 +31,18 @@ func main() {
 	tester.Init(&balanceManager, providers)
 
 	var strategy strategy2.Strategy = &strategy1.TemaAndRStrategy{}
+	parameters := []strategy2.Parameter{
+		{
+			Name: "ind1",
+			Min:  1,
+			Max:  10,
+		},
+	}
+	err = parameters[0].SetValue(2)
+	if err != nil {
+		panic(err)
+	}
+	strategy.UpdateParameters(parameters)
 
 	err = tester.Run(&strategy)
 	if err != nil {

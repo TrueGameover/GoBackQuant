@@ -128,3 +128,27 @@ func (manager *PositionManager) UpdateForClosePositions(tick *graph.Tick, bar *g
 func (manager *PositionManager) GetOpenedPositionsCount() uint {
 	return uint(len(manager.openPositions))
 }
+
+func (manager *PositionManager) GetOpenedLongPositionsCount() int {
+	count := 0
+
+	for _, position := range manager.openPositions {
+		if position.PositionType == TypeLong {
+			count++
+		}
+	}
+
+	return count
+}
+
+func (manager *PositionManager) GetOpenedShortPositionsCount() int {
+	count := 0
+
+	for _, position := range manager.openPositions {
+		if position.PositionType == TypeShort {
+			count++
+		}
+	}
+
+	return count
+}
