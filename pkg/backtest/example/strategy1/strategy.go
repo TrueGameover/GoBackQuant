@@ -96,3 +96,7 @@ func (strategy *TemaAndRStrategy) GetParameters() []strategy.Parameter {
 func (strategy *TemaAndRStrategy) GetPositionDayTransferCommission() decimal.Decimal {
 	return decimal.NewFromInt(1)
 }
+
+func (strategy *TemaAndRStrategy) Clone() strategy.Strategy {
+	return &TemaAndRStrategy{parameters: strategy.parameters}
+}

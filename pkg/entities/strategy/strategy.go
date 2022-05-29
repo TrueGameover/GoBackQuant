@@ -25,4 +25,5 @@ type Strategy interface {
 	GetPositionsLimit(currentGraph *graph.Graph) uint
 	UpdateParameters(parameters []Parameter)
 	GetParameters() []Parameter
+	Clone() Strategy
 }
