@@ -14,9 +14,6 @@ import (
 	"time"
 )
 
-//go:embed resources/report.template.gohtml
-var reportTemplate string
-
 func main() {
 	providers, err := getProviders()
 	if err != nil {
@@ -54,7 +51,7 @@ func main() {
 	//total := historySavers.GetDealsCount()
 	//profitDealsCount := historySavers.GetProfitDealsCount()
 
-	err = graphReport.GenerateReport(reportTemplate, "report.html", "Tradebot", historySavers, balanceManager.GetInitialBalance(), balanceManager.GetTotalBalance())
+	err = graphReport.GenerateReport("report.html", "Tradebot", historySavers, balanceManager.GetInitialBalance(), balanceManager.GetTotalBalance())
 	if err != nil {
 		panic(err)
 	}

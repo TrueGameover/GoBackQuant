@@ -2,6 +2,7 @@ package report
 
 import (
 	"bufio"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"github.com/TrueGameover/GoBackQuant/pkg/backtest/history"
@@ -12,6 +13,9 @@ import (
 	template "html/template"
 	"os"
 )
+
+//go:embed resources/report.template.gohtml
+var goHtmlReportTemplate string
 
 type GraphReport struct {
 }
@@ -45,8 +49,8 @@ type highchartsTrade struct {
 	Text  string `json:"text"`
 }
 
-func (saver *GraphReport) GenerateReport(goHtmlTemplate string, path string, title string, tradeHistories []*history.TradeHistory, initialBalance decimal.Decimal, finalBalance decimal.Decimal) error {
-	reportTemplate, err := template.New("report").Parse(goHtmlTemplate)
+func (saver *GraphReport) GenerateReport(path string, title string, tradeHistories []*history.TradeHistory, initialBalance decimal.Decimal, finalBalance decimal.Decimal) error {
+	reportTemplate, err := template.New("report").Parse(goHtmlReportTemplate)
 	if err != nil {
 		return err
 	}
