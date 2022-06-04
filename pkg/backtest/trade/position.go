@@ -2,6 +2,7 @@ package trade
 
 import (
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
+	"github.com/TrueGameover/GoBackQuant/pkg/entities/metadata"
 	"github.com/shopspring/decimal"
 	"github.com/thoas/go-funk"
 )
@@ -19,7 +20,10 @@ type Position struct {
 	ClosePrice      decimal.Decimal
 	StopLossPrice   decimal.Decimal
 	TakeProfitPrice decimal.Decimal
-	Lot             decimal.Decimal
+	Lot             int64
+	LotSize         int64
+	OneLotPrice     decimal.Decimal
+	InstrumentType  metadata.InstrumentType
 	PositionType    PositionType
 	Open            *graph.Bar
 	Closed          *graph.Bar
@@ -59,16 +63,19 @@ type PositionManager struct {
 	counter         uint64
 }
 
-func (manager *PositionManager) OpenPosition(positionType PositionType, tick *graph.Tick, bar *graph.Bar, lot decimal.Decimal, stopLoss decimal.Decimal, takeProfit decimal.Decimal) uint64 {
+func (manager *PositionManager) OpenPosition(positionType PositionType, instrumentType metadata.InstrumentType, tick *graph.Tick, bar *graph.Bar, lot int64, lotSize int64, oneLotPrice decimal.Decimal, stopLoss decimal.Decimal, takeProfit decimal.Decimal) uint64 {
 	position := Position{
 		Id:              manager.counter,
 		Price:           tick.Close,
 		StopLossPrice:   stopLoss,
 		TakeProfitPrice: takeProfit,
 		Lot:             lot,
+		LotSize:         lotSize,
+		InstrumentType:  instrumentType,
 		PositionType:    positionType,
 		Open:            bar,
 		Closed:          nil,
+		OneLotPrice:     oneLotPrice,
 	}
 
 	manager.openPositions = append(manager.openPositions, &position)
@@ -127,6 +134,30 @@ func (manager *PositionManager) UpdateForClosePositions(tick *graph.Tick, bar *g
 
 func (manager *PositionManager) GetOpenedPositionsCount() uint {
 	return uint(len(manager.openPositions))
+}
+
+func (manager *PositionManager) GetOpenedLongPositions() []*Position {
+	var positions []*Position
+
+	for _, position := range manager.openPositions {
+		if position.PositionType == TypeLong {
+			positions = append(positions, position)
+		}
+	}
+
+	return positions
+}
+
+func (manager *PositionManager) GetOpenedShortPositions() []*Position {
+	var positions []*Position
+
+	for _, position := range manager.openPositions {
+		if position.PositionType == TypeShort {
+			positions = append(positions, position)
+		}
+	}
+
+	return positions
 }
 
 func (manager *PositionManager) GetOpenedLongPositionsCount() int {

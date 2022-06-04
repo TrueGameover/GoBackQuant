@@ -10,6 +10,8 @@ import (
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/graph"
 	strategy2 "github.com/TrueGameover/GoBackQuant/pkg/entities/strategy"
 	"github.com/TrueGameover/GoBackQuant/pkg/entities/tick"
+	commission2 "github.com/TrueGameover/GoBackQuant/pkg/tinkoff/commission"
+	"github.com/TrueGameover/GoBackQuant/pkg/tinkoff/metadata"
 	"github.com/shopspring/decimal"
 	"time"
 )
@@ -24,8 +26,11 @@ func main() {
 	balanceManager.SetInitialBalance(decimal.NewFromInt(10000))
 	balanceManager.Reset()
 
+	commissionCalculator := &commission2.TinkoffCommissionCalculator{}
+	metaData := &metadata.TinkoffInstrumentsMetaData{}
+
 	tester := backtesting.StrategyTester{}
-	tester.Init(&balanceManager, providers)
+	tester.Init(&balanceManager, commissionCalculator, metaData, providers)
 
 	var strategy strategy2.Strategy = &strategy1.TemaAndRStrategy{}
 	parameters := []strategy2.Parameter{

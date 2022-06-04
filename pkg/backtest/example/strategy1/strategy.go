@@ -24,10 +24,6 @@ func (strategy *TemaAndRStrategy) AfterTick(graph []*graph.Graph) {
 
 }
 
-func (strategy *TemaAndRStrategy) GetTradeFee(currentGraph *graph.Graph) decimal.Decimal {
-	return decimal.New(10, 0)
-}
-
 func (strategy *TemaAndRStrategy) ShouldContinue() bool {
 	return true
 }
@@ -61,20 +57,12 @@ func (strategy *TemaAndRStrategy) GetPositionType(currentGraph *graph.Graph) tra
 	}
 }
 
-func (strategy *TemaAndRStrategy) GetLotSize(currentGraph *graph.Graph) decimal.Decimal {
-	return decimal.NewFromInt(2)
-}
-
-func (strategy *TemaAndRStrategy) GetSinglePipPrice(currentGraph *graph.Graph) decimal.Decimal {
-	return decimal.NewFromFloat(1)
+func (strategy *TemaAndRStrategy) GetLotSize(currentGraph *graph.Graph) int64 {
+	return 1
 }
 
 func (strategy *TemaAndRStrategy) GetSingleLotPrice(currentGraph *graph.Graph) decimal.Decimal {
 	return decimal.NewFromFloat(100)
-}
-
-func (strategy *TemaAndRStrategy) GetSinglePipValue(currentGraph *graph.Graph) decimal.Decimal {
-	return decimal.NewFromFloat(0.01)
 }
 
 func (strategy *TemaAndRStrategy) GetPositionsLimit(currentGraph *graph.Graph) uint {
@@ -93,10 +81,10 @@ func (strategy *TemaAndRStrategy) GetParameters() []strategy.Parameter {
 	return strategy.parameters
 }
 
-func (strategy *TemaAndRStrategy) GetPositionDayTransferCommission() decimal.Decimal {
-	return decimal.NewFromInt(1)
-}
-
 func (strategy *TemaAndRStrategy) Clone() strategy.Strategy {
 	return &TemaAndRStrategy{parameters: strategy.parameters}
+}
+
+func (strategy *TemaAndRStrategy) GetLotsAmount(currentGraph *graph.Graph) int64 {
+	return 5
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/shopspring/decimal"
 	template "html/template"
 	"os"
+	"strconv"
 )
 
 //go:embed resources/report.template.gohtml
@@ -33,6 +34,7 @@ type Metrics struct {
 	FinalBalance           string
 	Prom                   string
 	PromWithoutWinStreak   string
+	DealsCount             string
 }
 
 type highchartsCandle struct {
@@ -83,6 +85,7 @@ func (saver *GraphReport) GenerateReport(path string, title string, tradeHistori
 			FinalBalance:           tradeMetrics.FinalBalance.StringFixed(2),
 			Prom:                   tradeMetrics.Prom.StringFixed(2),
 			PromWithoutWinStreak:   tradeMetrics.PromWithoutWinStreak.StringFixed(2),
+			DealsCount:             strconv.FormatInt(tradeMetrics.DealsCount, 10),
 		},
 	}
 

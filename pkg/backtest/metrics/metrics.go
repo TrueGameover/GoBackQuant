@@ -19,6 +19,7 @@ type TradeMetrics struct {
 	FinalBalance           decimal.Decimal
 	Prom                   decimal.Decimal
 	PromWithoutWinStreak   decimal.Decimal
+	DealsCount             int64
 }
 
 func GetProfitDealsCount(tradeHistories []*history.TradeHistory) int64 {
@@ -264,5 +265,6 @@ func CalculateMetrics(tradeHistories []*history.TradeHistory, initialBalance dec
 		PromWithoutWinStreak:   CalculatePROMPercentWithoutWinStreak(tradeHistories, initialBalance),
 		ProfitAmount:           finalBalance.Sub(initialBalance),
 		ProfitPercentAmount:    finalBalance.Sub(initialBalance).Div(initialBalance).Mul(decimal.NewFromInt(100)),
+		DealsCount:             GetDealsCount(tradeHistories),
 	}
 }
